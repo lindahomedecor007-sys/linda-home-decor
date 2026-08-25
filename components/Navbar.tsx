@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -15,7 +16,27 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen((prev) => !prev);
@@ -25,8 +46,17 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   };
 
+  const isHomePage = pathname === "/";
+  const isSolidNav = !isHomePage || isScrolled;
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#ffff] shadow-xs">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
+        isSolidNav
+          ? "bg-white shadow-xs"
+          : "bg-transparent shadow-none"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -47,7 +77,9 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-black font-medium text-base transition-colors duration-200 hover:text-[#FF9E15]/90"
+                className={`font-medium text-base transition-colors duration-200 hover:text-[#FF9E15] ${
+                  isSolidNav ? "text-black" : "text-white"
+                }`}
               >
                 {link.name}
               </Link>
@@ -69,9 +101,9 @@ export default function Navbar() {
             <button
               type="button"
               onClick={toggleMobileMenu}
-              className={`inline-flex items-center justify-center p-2 text-black focus:outline-none transition-transform duration-300 ease-in-out ${
-                isMobileMenuOpen ? "rotate-90" : "rotate-0"
-              }`}
+              className={`inline-flex items-center justify-center p-2 focus:outline-none transition-all duration-300 ease-in-out ${
+                isSolidNav ? "text-black" : "text-white"
+              } ${isMobileMenuOpen ? "rotate-90" : "rotate-0"}`}
               aria-expanded={isMobileMenuOpen}
               aria-label="Toggle navigation menu"
             >
