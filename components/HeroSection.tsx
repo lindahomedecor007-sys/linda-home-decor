@@ -54,7 +54,7 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
 
   return (
     <section
-      className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col justify-between overflow-hidden bg-neutral-900 text-white select-none group"
+      className="relative w-full h-[75dvh] min-h-[500px] md:h-[100dvh] md:min-h-[100dvh] flex flex-col justify-between overflow-hidden bg-neutral-900 text-white select-none group"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -120,50 +120,50 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
       </div>
 
       {/* Main Container */}
-      <div className="relative z-30 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-6 sm:pb-8 flex flex-col justify-between flex-1">
-        {/* Top spacer */}
-        <div />
+      <div className="relative z-30 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-6 sm:pb-8 flex flex-col justify-end md:justify-between flex-1">
+        {/* Top spacer (Desktop only) */}
+        <div className="hidden md:block" />
 
         {/* Center-Left Content Group (Subheading + Title + CTA Button) */}
-        <div className="my-auto py-4 sm:py-8 max-w-2xl lg:max-w-3xl flex flex-col items-start">
+        <div className="mt-auto mb-1 md:my-auto py-2 sm:py-4 md:py-8 max-w-2xl lg:max-w-3xl flex flex-col items-start">
           {/* Subheading: Clean typography matching reference */}
           {activeSlide.subheading && (
-            <p className="text-sm sm:text-base font-normal tracking-wide text-white/90 mb-3 sm:mb-4 drop-shadow-xs transition-all animate-fade-in">
+            <p className="text-sm sm:text-base font-normal tracking-wide text-white/90 mb-2 sm:mb-4 drop-shadow-xs transition-all animate-fade-in">
               {activeSlide.subheading}
             </p>
           )}
 
           {/* Main Headline Title: Bold modern typography matching reference */}
           {activeSlide.title && (
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-tight text-white leading-[1.08] mb-6 sm:mb-8 drop-shadow-sm transition-all animate-fade-in">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-tight text-white leading-[1.1] sm:leading-[1.08] mb-4 sm:mb-8 drop-shadow-sm transition-all animate-fade-in">
               {activeSlide.title}
             </h1>
           )}
 
-          {/* CTA Button Style from reference image: Dark green pill + separate white round arrow badge */}
+          {/* CTA Button Style from reference image */}
           {activeSlide.button_text && (
             <Link
               href={activeSlide.button_link || "/products"}
-              className="group inline-flex items-center gap-2.5 transition-transform duration-300 active:scale-95 cursor-pointer"
+              className="group inline-flex items-center gap-2 sm:gap-2.5 transition-transform duration-300 active:scale-95 cursor-pointer"
             >
               <span className="bg-[#FF9E15] hover:bg-[#FF9E15]/90 text-white font-medium text-sm sm:text-base px-6 sm:px-7 py-3 sm:py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
                 {activeSlide.button_text}
               </span>
-              <span className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white text-neutral-900 flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-300 shrink-0">
-                <ArrowUpRight className="w-5 h-5 text-neutral-900" />
+              <span className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white text-neutral-900 flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-300 shrink-0">
+                <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-900" />
               </span>
             </Link>
           )}
         </div>
 
-        {/* Bottom Horizontal Line */}
-        <div className="pt-4 border-t border-white/15 flex items-center justify-between">
+        {/* Bottom Horizontal Line (Desktop only) */}
+        <div className="hidden md:flex pt-4 border-t border-white/15 items-center justify-between">
           <div />
         </div>
       </div>
 
-      {/* Floating Next & Previous Navigation Buttons (Always visible in viewport) */}
-      <div className="absolute bottom-6 sm:bottom-8 right-4 sm:right-8 lg:right-12 z-40 flex items-center gap-3">
+      {/* Floating Next & Previous Navigation Buttons (Hidden on mobile, visible on md and up) */}
+      <div className="hidden md:flex absolute bottom-6 sm:bottom-8 right-4 sm:right-8 lg:right-12 z-40 items-center gap-3">
         <button
           type="button"
           onClick={prevSlide}

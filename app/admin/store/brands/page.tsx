@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import { useStore } from "@/context/StoreContext";
 import {
   Loader2,
@@ -20,8 +18,6 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminToast, { ToastMessage } from "@/components/AdminToast";
 
 export default function AdminBrandsManagementPage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const { brandsData, brandsLoading, saveBrands } = useStore();
 
   const [formData, setFormData] = useState<BrandsSectionData>(defaultBrandsData);
@@ -31,13 +27,6 @@ export default function AdminBrandsManagementPage() {
 
   const [newBrandName, setNewBrandName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Auth redirect
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/admin/login");
-    }
-  }, [user, authLoading, router]);
 
   // Sync with context
   useEffect(() => {
@@ -137,7 +126,7 @@ export default function AdminBrandsManagementPage() {
     }
   };
 
-  if (authLoading || brandsLoading) {
+  if (brandsLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">

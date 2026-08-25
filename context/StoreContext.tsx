@@ -27,6 +27,13 @@ import {
   getAboutSection,
   saveAboutSection as saveAboutSectionLib,
 } from "@/lib/about";
+import {
+  getServicesSection,
+  saveServicesSection,
+  ServicesSectionData,
+  ServiceItem,
+  defaultServicesData,
+} from "@/lib/services";
 import { supabase } from "@/lib/supabase/client";
 
 export interface CategoryItem {
@@ -71,6 +78,8 @@ interface StoreContextType {
   companySettingsLoading: boolean;
   aboutData: AboutSectionData | null;
   aboutLoading: boolean;
+  servicesData: ServicesSectionData | null;
+  servicesLoading: boolean;
   enquiries: EnquiryItem[];
   enquiriesLoading: boolean;
   categories: CategoryItem[];
@@ -92,6 +101,8 @@ interface StoreContextType {
   saveCompanySettings: (data: CompanySettingsData) => Promise<CompanySettingsData>;
   refreshAbout: () => Promise<AboutSectionData | null>;
   saveAbout: (data: AboutSectionData) => Promise<AboutSectionData>;
+  refreshServices: () => Promise<ServicesSectionData | null>;
+  saveServices: (data: ServicesSectionData) => Promise<ServicesSectionData>;
   refreshEnquiries: () => Promise<EnquiryItem[]>;
   addEnquiry: (input: CreateEnquiryInput) => Promise<EnquiryItem>;
   updateEnquiryStatus: (id: string, status: "pending" | "completed") => Promise<void>;
@@ -153,6 +164,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const [aboutData, setAboutData] = useState<AboutSectionData | null>(null);
   const [aboutLoading, setAboutLoading] = useState(true);
+
+  const [servicesData, setServicesData] = useState<ServicesSectionData | null>(null);
+  const [servicesLoading, setServicesLoading] = useState(true);
 
   const [enquiries, setEnquiries] = useState<EnquiryItem[]>([]);
   const [enquiriesLoading, setEnquiriesLoading] = useState(true);
@@ -383,6 +397,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return saved;
     } catch (err) {
       console.error("Failed to save about section to database:", err);
+      throw err;
+    }
+  }, []);
+
+  // Fetch Services Section from database
+  const refreshServices = useCallback(async () => {
+    setServicesLoading(true);
+    try {
+      const data = await getServicesSection();
+      setServicesData(data);
+      return data;
+    } catch (err) {
+      console.error("Failed to fetch services section from database:", err);
+      return null;
+    } finally {
+      setServicesLoading(false);
+    }
+  }, []);
+
+  // Save Services Section to database & update context state
+  const saveServices = useCallback(async (data: ServicesSectionData) => {
+    try {
+      const res = await saveServicesSection(data);
+      if (res.error) throw res.error;
+      const saved = res.data || data;
+      setServicesData(saved);
+      return saved;
+    } catch (err) {
+      console.error("Failed to save services section to database:", err);
       throw err;
     }
   }, []);
@@ -763,6 +806,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       refreshWhoWeAre(),
       refreshCompanySettings(),
       refreshAbout(),
+      refreshServices(),
       refreshEnquiries(),
       refreshCategories(),
       refreshProducts(),
@@ -775,6 +819,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     refreshWhoWeAre,
     refreshCompanySettings,
     refreshAbout,
+    refreshServices,
     refreshEnquiries,
     refreshCategories,
     refreshProducts,
@@ -783,7 +828,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = Boolean(pathname?.startsWith("/admin"));
 
-  // Only auto-fetch all 10 tables on mount if user is in admin dashboard.
+  // Only auto-fetch all tables on mount if user is in admin dashboard.
   // Public pages fetch their section data via Next.js Server Components.
   useEffect(() => {
     if (isAdmin) {
@@ -813,6 +858,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         companySettingsLoading,
         aboutData,
         aboutLoading,
+        servicesData,
+        servicesLoading,
         enquiries,
         enquiriesLoading,
         categories,
@@ -834,6 +881,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         saveCompanySettings,
         refreshAbout,
         saveAbout,
+        refreshServices,
+        saveServices,
         refreshEnquiries,
         addEnquiry,
         updateEnquiryStatus,

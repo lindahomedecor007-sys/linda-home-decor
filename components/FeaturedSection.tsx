@@ -34,7 +34,7 @@ export default function FeaturedSection({ data: propData }: FeaturedSectionProps
   ];
 
   return (
-    <section className="w-full py-10 sm:py-14 md:pt-9 md:pb-9 bg-white text-neutral-900 select-none">
+    <section className="w-full py-10 sm:py-14 md:pt-12 md:pb-12 bg-white text-neutral-900 select-none">
       {/* Centered Constrained Container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Optional Section Heading from Database */}
@@ -69,7 +69,7 @@ export default function FeaturedSection({ data: propData }: FeaturedSectionProps
                     alt={item.title || `Featured ${index + 1}`}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                    className="object-fill"
                   />
                 )}
 
