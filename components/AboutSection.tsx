@@ -60,7 +60,7 @@ export default function AboutSection({
             )}
 
             {heading && (
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-neutral-900 leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-neutral-900 leading-tight">
                 {heading}
               </h1>
             )}

@@ -19,7 +19,7 @@ export default function CategorySection({ categories: propCategories }: Category
   }
 
   return (
-    <section className="w-full py-12 sm:py-16 md:pt-9 md:pb-9 bg-white text-neutral-900 select-none">
+    <section className="w-full py-12 sm:py-16 md:pt-12 md:pb-12 bg-white text-neutral-900 select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Centered Heading */}
         <div className="mb-8 sm:mb-12 text-center">

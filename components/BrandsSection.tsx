@@ -27,7 +27,7 @@ export default function BrandsSection({ data: propData }: BrandsSectionProps) {
   }
 
   return (
-    <section className="w-full py-16 sm:py-20 md:pt-9 md:pb-9 bg-white text-neutral-900 select-none">
+    <section className="w-full py-16 sm:py-20 md:pt-12 md:pb-12 bg-white text-neutral-900 select-none">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Centered Subtitle & Main Heading matching reference image */}
         <div className="text-center mb-10 sm:mb-14 space-y-1">
@@ -44,10 +44,13 @@ export default function BrandsSection({ data: propData }: BrandsSectionProps) {
         </div>
 
         {/* 5-Column Grid matching reference design */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 border border-neutral-200/90 rounded-sm overflow-hidden bg-white">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 rounded-sm overflow-hidden bg-white">
           {brands.map((brand, index) => {
+            const isLastOdd = index === brands.length - 1 && brands.length % 2 === 1;
+            const spanClass = isLastOdd ? "col-span-2 sm:col-span-1 md:col-span-1" : "";
+
             const cardContent = (
-              <div className="w-full h-28 sm:h-32 md:h-36 flex items-center justify-center p-4 sm:p-6 bg-white border border-neutral-100/80 transition-all duration-300 hover:shadow-lg hover:z-10 hover:scale-[1.02] cursor-pointer group relative">
+              <div className="w-full h-28 sm:h-32 md:h-36 flex items-center justify-center p-4 sm:p-6 bg-white transition-all duration-300 hover:shadow-lg hover:z-10 hover:scale-[1.02] cursor-pointer group relative">
                 <div className="relative w-[130px] sm:w-[150px] h-12 sm:h-14 md:h-16">
                   <Image
                     src={brand.image_url}
@@ -62,14 +65,14 @@ export default function BrandsSection({ data: propData }: BrandsSectionProps) {
 
             if (brand.link) {
               return (
-                <Link key={brand.id || index} href={brand.link} className="block relative">
+                <Link key={brand.id || index} href={brand.link} className={`block relative ${spanClass}`}>
                   {cardContent}
                 </Link>
               );
             }
 
             return (
-              <div key={brand.id || index} className="relative">
+              <div key={brand.id || index} className={`relative ${spanClass}`}>
                 {cardContent}
               </div>
             );

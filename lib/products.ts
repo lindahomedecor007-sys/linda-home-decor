@@ -1,8 +1,12 @@
 import { supabase } from "@/lib/supabase/client";
 import { ProductItem } from "@/context/StoreContext";
 
+export type { ProductItem };
+
 export interface GetProductsOptions {
   limit?: number;
+  categoryId?: string;
+  categorySlug?: string;
 }
 
 export async function getProducts(options?: GetProductsOptions): Promise<ProductItem[]> {
@@ -11,6 +15,10 @@ export async function getProducts(options?: GetProductsOptions): Promise<Product
       .from("products")
       .select("*")
       .order("created_at", { ascending: false });
+
+    if (options?.categoryId) {
+      query = query.eq("category_id", options.categoryId);
+    }
 
     if (options?.limit && options.limit > 0) {
       query = query.limit(options.limit);

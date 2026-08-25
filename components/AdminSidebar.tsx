@@ -108,6 +108,21 @@ export default function AdminSidebar() {
           href: "/admin/store/about",
           current: pathname === "/admin/store/about",
         },
+        {
+          name: "Vision Section",
+          href: "/admin/store/vision",
+          current: pathname === "/admin/store/vision",
+        },
+        {
+          name: "Mission Section",
+          href: "/admin/store/mission",
+          current: pathname === "/admin/store/mission",
+        },
+        {
+          name: "Services Section",
+          href: "/admin/store/services",
+          current: pathname === "/admin/store/services",
+        },
       ],
     },
     {

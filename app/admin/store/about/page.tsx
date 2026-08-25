@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useAuth } from "@/context/AuthContext";
 import { useStore } from "@/context/StoreContext";
 import {
   Loader2,
@@ -13,9 +11,6 @@ import {
   ImageIcon,
   RotateCcw,
   Sparkles,
-  Target,
-  Compass,
-  FileText,
 } from "lucide-react";
 import { AboutSectionData, defaultAboutData } from "@/lib/about";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -25,25 +20,15 @@ import AdminToast, { ToastMessage } from "@/components/AdminToast";
 const DRAFT_STORAGE_KEY = "linda_about_section_draft";
 
 export default function AdminAboutPage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const { aboutData, aboutLoading, saveAbout } = useStore();
 
   const [formData, setFormData] = useState<AboutSectionData>(defaultAboutData);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"about" | "vision" | "mission">("about");
   const [hasDraft, setHasDraft] = useState(false);
   const [statusMessage, setStatusMessage] = useState<ToastMessage | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Auth redirect
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/admin/login");
-    }
-  }, [user, authLoading, router]);
 
   // Sync state from context & restore any unsaved draft
   useEffect(() => {
@@ -190,7 +175,7 @@ export default function AdminAboutPage() {
     }
   };
 
-  if (authLoading || aboutLoading) {
+  if (aboutLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
@@ -241,59 +226,10 @@ export default function AdminAboutPage() {
               </div>
             )}
 
-            {/* Sub-Section Navigation Tabs */}
-            <div className="flex items-center gap-2 border-b border-neutral-200 pb-2">
-              <button
-                type="button"
-                onClick={() => setActiveTab("about")}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === "about"
-                    ? "bg-[#FF9E15] text-white shadow-xs"
-                    : "bg-white text-neutral-600 hover:text-black border border-neutral-200"
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                About Us
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("vision")}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === "vision"
-                    ? "bg-[#FF9E15] text-white shadow-xs"
-                    : "bg-white text-neutral-600 hover:text-black border border-neutral-200"
-                }`}
-              >
-                <Compass className="w-4 h-4" />
-                Vision
-                <span className="text-[10px] px-1.5 py-0.5 rounded-xs bg-amber-100 text-amber-800 font-medium normal-case">
-                  Later
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("mission")}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === "mission"
-                    ? "bg-[#FF9E15] text-white shadow-xs"
-                    : "bg-white text-neutral-600 hover:text-black border border-neutral-200"
-                }`}
-              >
-                <Target className="w-4 h-4" />
-                Mission
-                <span className="text-[10px] px-1.5 py-0.5 rounded-xs bg-amber-100 text-amber-800 font-medium normal-case">
-                  Later
-                </span>
-              </button>
-            </div>
-
-            {/* TAB 1: About Us Section */}
-            {activeTab === "about" && (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* 1. Main Image Upload */}
-                <div className="bg-white rounded-sm border border-neutral-200 p-5 sm:p-6 shadow-xs space-y-4">
+            {/* About Us Form */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* 1. Main Image Upload */}
+              <div className="bg-white rounded-sm border border-neutral-200 p-5 sm:p-6 shadow-xs space-y-4">
                   <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-100">
                     <ImageIcon className="w-4 h-4 text-[#FF9E15]" />
                     <h3 className="text-sm font-bold text-black uppercase tracking-wider">
@@ -455,28 +391,6 @@ export default function AdminAboutPage() {
                   </button>
                 </div>
               </form>
-            )}
-
-            {/* TAB 2 & 3: Vision and Mission Placeholder */}
-            {activeTab === "vision" && (
-              <div className="bg-white rounded-sm border border-neutral-200 p-8 sm:p-12 text-center shadow-xs space-y-3">
-                <Compass className="w-12 h-12 text-neutral-300 mx-auto" />
-                <h3 className="text-base font-bold text-neutral-800">Vision Section</h3>
-                <p className="text-xs text-neutral-500 max-w-sm mx-auto">
-                  Vision section controls will be enabled here in the next step as requested.
-                </p>
-              </div>
-            )}
-
-            {activeTab === "mission" && (
-              <div className="bg-white rounded-sm border border-neutral-200 p-8 sm:p-12 text-center shadow-xs space-y-3">
-                <Target className="w-12 h-12 text-neutral-300 mx-auto" />
-                <h3 className="text-base font-bold text-neutral-800">Mission Section</h3>
-                <p className="text-xs text-neutral-500 max-w-sm mx-auto">
-                  Mission section controls will be enabled here in the next step as requested.
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </main>

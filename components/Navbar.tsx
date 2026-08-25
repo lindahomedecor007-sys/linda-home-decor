@@ -1,24 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useStore } from "@/context/StoreContext";
 
 const navLinks = [
   { name: "Home", href: "/" },
-  { name: "About", href: "/about" },
   { name: "Products", href: "/products" },
   { name: "Services", href: "/services" },
-  { name: "Projects", href: "/projects" },
-  { name: "Gallery", href: "/gallery" },
+  { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { categories } = useStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isProductsHovered, setIsProductsHovered] = useState(false);
+  const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,6 +49,20 @@ export default function Navbar() {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+    setIsMobileProductsOpen(false);
+  };
+
+  const handleMouseEnterProducts = () => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+    }
+    setIsProductsHovered(true);
+  };
+
+  const handleMouseLeaveProducts = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setIsProductsHovered(false);
+    }, 150);
   };
 
   const isHomePage = pathname === "/";
@@ -53,8 +72,8 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
         isSolidNav
-          ? "bg-white shadow-xs"
-          : "bg-transparent shadow-none"
+          ? "bg-[#ffffff] shadow-xs"
+          : "bg-[#ffffff] shadow-xs md:bg-transparent md:shadow-none"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -73,17 +92,80 @@ export default function Navbar() {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`font-medium text-base transition-colors duration-200 hover:text-[#FF9E15] ${
-                  isSolidNav ? "text-black" : "text-white"
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              if (link.name === "Products") {
+                return (
+                  <div
+                    key={link.name}
+                    className="relative py-4"
+                    onMouseEnter={handleMouseEnterProducts}
+                    onMouseLeave={handleMouseLeaveProducts}
+                  >
+                    <Link
+                      href="/products"
+                      className={`font-medium text-base transition-colors duration-200 hover:text-[#FF9E15] inline-flex items-center gap-1.5 ${
+                        isSolidNav ? "text-black" : "text-white"
+                      } ${isProductsHovered ? "text-[#FF9E15]" : ""}`}
+                    >
+                      <span>{link.name}</span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          isProductsHovered ? "rotate-180 text-[#FF9E15]" : ""
+                        }`}
+                      />
+                    </Link>
+
+                    {/* Desktop Categories Dropdown Menu */}
+                    <AnimatePresence>
+                      {isProductsHovered && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 4, scale: 0.98 }}
+                          transition={{ duration: 0.15, ease: "easeOut" }}
+                          className="absolute top-[85%] left-0 pt-2 z-50 min-w-[200px]"
+                        >
+                          <div className="bg-white rounded-sm shadow-xl border border-neutral-100 py-1.5 overflow-hidden">
+                            {categories && categories.length > 0 ? (
+                              categories.map((cat) => (
+                                <Link
+                                  key={cat.id}
+                                  href={`/products?category=${cat.slug || cat.id}`}
+                                  onClick={() => setIsProductsHovered(false)}
+                                  className="block px-4 py-2 text-sm text-neutral-800 hover:bg-[#FF9E15] hover:text-white transition-colors duration-150 font-medium"
+                                >
+                                  {cat.name}
+                                </Link>
+                              ))
+                            ) : (
+                              <Link
+                                href="/products"
+                                onClick={() => setIsProductsHovered(false)}
+                                className="block px-4 py-2 text-sm text-neutral-800 hover:bg-[#FF9E15] hover:text-white transition-colors duration-150 font-medium"
+                              >
+                                Products
+                              </Link>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              }
+
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`font-medium text-base transition-colors duration-200 hover:text-[#FF9E15] ${
+                    isSolidNav ? "text-black" : "text-white"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Desktop Enquiry Button */}
@@ -101,7 +183,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={toggleMobileMenu}
-              className={`inline-flex items-center justify-center p-2 focus:outline-none transition-all duration-300 ease-in-out ${
+              className={`inline-flex items-center justify-center p-2 focus:outline-none transition-all duration-300 ease-in-out text-black md:${
                 isSolidNav ? "text-black" : "text-white"
               } ${isMobileMenuOpen ? "rotate-90" : "rotate-0"}`}
               aria-expanded={isMobileMenuOpen}
@@ -145,10 +227,10 @@ export default function Navbar() {
           />
 
           {/* Right Drawer Content */}
-          <div className="relative z-10 w-[80%] h-full bg-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto animate-slide-in-right">
+          <div className="relative z-10 w-[80%] h-full bg-[#18130B] text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto animate-slide-in-right">
             <div>
               {/* Drawer Header */}
-              <div className="flex items-center justify-between pb-5 border-b border-gray-100">
+              <div className="flex items-center justify-between pb-5 border-b border-white/10">
                 <Link href="/" onClick={closeMobileMenu}>
                   <Image
                     src="/logo/logo.png"
@@ -162,7 +244,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={closeMobileMenu}
-                  className="p-1.5 text-black focus:outline-none"
+                  className="p-1.5 text-white hover:text-[#FF9E15] transition-colors focus:outline-none"
                   aria-label="Close menu"
                 >
                   <svg
@@ -178,26 +260,80 @@ export default function Navbar() {
               </div>
 
               {/* Drawer Links */}
-              <nav className="flex flex-col space-y-3 pt-4">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    onClick={closeMobileMenu}
-                    className="text-black font-medium text-base py-2 transition-colors duration-200 hover:text-[#FF9E15]/90"
-                  >
-                    {link.name}
-                  </Link>
-                ))}
+              <nav className="flex flex-col space-y-2 pt-4">
+                {navLinks.map((link) => {
+                  if (link.name === "Products") {
+                    return (
+                      <div key={link.name} className="flex flex-col border-b border-white/10 pb-2">
+                        <div className="flex items-center justify-between py-2">
+                          <Link
+                            href="/products"
+                            onClick={closeMobileMenu}
+                            className="text-white font-medium text-base transition-colors duration-200 hover:text-[#FF9E15]"
+                          >
+                            Products
+                          </Link>
+                          {categories && categories.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setIsMobileProductsOpen((prev) => !prev)}
+                              className="p-1 text-neutral-400 hover:text-white focus:outline-none"
+                              aria-label="Toggle categories"
+                            >
+                              <ChevronDown
+                                className={`w-5 h-5 transition-transform duration-200 ${isMobileProductsOpen ? "rotate-180 text-[#FF9E15]" : ""
+                                  }`}
+                              />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Expandable Mobile Subcategories */}
+                        {isMobileProductsOpen && categories && categories.length > 0 && (
+                          <div className="pl-3 pb-2 space-y-2 border-l-2 border-[#FF9E15]/40 ml-2 mt-1">
+                            <Link
+                              href="/products"
+                              onClick={closeMobileMenu}
+                              className="block py-1 text-xs font-semibold text-[#FF9E15] uppercase tracking-wider"
+                            >
+                              • All Products
+                            </Link>
+                            {categories.map((cat) => (
+                              <Link
+                                key={cat.id}
+                                href={`/products?category=${cat.slug || cat.id}`}
+                                onClick={closeMobileMenu}
+                                className="flex items-center gap-2 py-1 text-sm text-neutral-300 hover:text-[#FF9E15] transition-colors"
+                              >
+                                {cat.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={link.name}
+                      href={link.href}
+                      onClick={closeMobileMenu}
+                      className="text-white font-medium text-base py-2 transition-colors duration-200 hover:text-[#FF9E15] border-b border-white/10"
+                    >
+                      {link.name}
+                    </Link>
+                  );
+                })}
               </nav>
             </div>
 
             {/* Bottom Enquiry Button */}
-            <div className="pt-4 border-t border-gray-100">
+            <div className="pt-4 border-t border-white/10">
               <Link
                 href="/contact"
                 onClick={closeMobileMenu}
-                className="block w-full text-center bg-[#FF9E15] hover:bg-[#FF9E15]/90 text-white font-medium px-10 py-2.5 rounded-xs shadow-sm transition-all duration-200"
+                className="block w-full text-center bg-[#FF9E15] hover:bg-[#e0890f] text-white font-medium px-10 py-2.5 rounded-xs shadow-sm transition-all duration-200"
               >
                 Enquiry
               </Link>

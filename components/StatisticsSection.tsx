@@ -121,7 +121,7 @@ export default function StatisticsSection({ data: propData }: StatisticsSectionP
   }
 
   return (
-    <section ref={sectionRef} className="w-full py-8 sm:py-10 md:pt-18 md:pb-9 bg-white text-neutral-900 select-none">
+    <section ref={sectionRef} className="w-full py-8 sm:py-10 md:pt-18 md:pb-12 bg-white text-neutral-900 select-none">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with horizontal line accents and square endpoint indicators matching reference image */}
         <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
