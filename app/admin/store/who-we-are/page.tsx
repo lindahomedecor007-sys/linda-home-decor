@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import { useStore } from "@/context/StoreContext";
 import {
   Loader2,
@@ -20,8 +18,6 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminToast, { ToastMessage } from "@/components/AdminToast";
 
 export default function AdminWhoWeArePage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const { whoWeAreData, whoWeAreLoading, saveWhoWeAre } = useStore();
 
   const [formData, setFormData] = useState<WhoWeAreSectionData>(defaultWhoWeAreData);
@@ -39,13 +35,6 @@ export default function AdminWhoWeArePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const statIconInputRef = useRef<HTMLInputElement>(null);
   const itemIconInputRef = useRef<HTMLInputElement>(null);
-
-  // Auth redirect
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/admin/login");
-    }
-  }, [user, authLoading, router]);
 
   // Sync with context
   useEffect(() => {
@@ -309,7 +298,7 @@ export default function AdminWhoWeArePage() {
     }
   };
 
-  if (authLoading || whoWeAreLoading) {
+  if (whoWeAreLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">

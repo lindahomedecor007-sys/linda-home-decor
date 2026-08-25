@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import { useStore } from "@/context/StoreContext";
 import {
   Loader2,
@@ -22,8 +20,6 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminToast, { ToastMessage } from "@/components/AdminToast";
 
 export default function AdminStatisticsManagementPage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const { statisticsData, statisticsLoading, saveStatistics } = useStore();
 
   const [formData, setFormData] = useState<StatisticsSectionData>(defaultStatisticsData);
@@ -33,13 +29,6 @@ export default function AdminStatisticsManagementPage() {
   // New item draft state
   const [newValue, setNewValue] = useState("");
   const [newLabel, setNewLabel] = useState("");
-
-  // Auth redirect
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/admin/login");
-    }
-  }, [user, authLoading, router]);
 
   // Sync with context
   useEffect(() => {
@@ -131,7 +120,7 @@ export default function AdminStatisticsManagementPage() {
     }
   };
 
-  if (authLoading || statisticsLoading) {
+  if (statisticsLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">

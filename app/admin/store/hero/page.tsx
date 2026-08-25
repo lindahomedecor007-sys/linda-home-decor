@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import { useStore } from "@/context/StoreContext";
 import {
   Loader2,
@@ -17,6 +15,7 @@ import {
   Trash2,
   Monitor,
   Smartphone,
+  X,
 } from "lucide-react";
 import { defaultHeroData, HeroSlide } from "@/lib/hero";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -24,8 +23,6 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminToast, { ToastMessage } from "@/components/AdminToast";
 
 export default function AdminHeroManagementPage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const {
     heroSlides,
     heroLoading,
@@ -39,6 +36,7 @@ export default function AdminHeroManagementPage() {
   const [formData, setFormData] = useState<HeroSlide>(defaultHeroData);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [uploadingDesktop, setUploadingDesktop] = useState(false);
   const [uploadingMobile, setUploadingMobile] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -51,13 +49,6 @@ export default function AdminHeroManagementPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [productFilterCategory, setProductFilterCategory] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("");
-
-  // Redirect if not logged in
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/admin/login");
-    }
-  }, [user, authLoading, router]);
 
   // Sync formData with active slide
   useEffect(() => {
@@ -109,18 +100,22 @@ export default function AdminHeroManagementPage() {
     }
   };
 
-  // Handle slide deletion
-  const handleDeleteSlide = async () => {
+  // Handle slide deletion trigger
+  const handleOpenDelete = () => {
     const currentSlide = heroSlides[activeSlideIndex];
     if (!currentSlide?.id) {
-      // Just an unsaved draft
+      // Unsaved draft: discard cleanly
       setActiveSlideIndex(Math.max(0, activeSlideIndex - 1));
+      setStatusMessage({ type: "success", text: "Unsaved slide draft discarded." });
       return;
     }
+    setShowDeleteModal(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this slide from the hero carousel?")) {
-      return;
-    }
+  // Confirm delete slide from database & Cloudinary
+  const confirmDeleteSlide = async () => {
+    const currentSlide = heroSlides[activeSlideIndex];
+    if (!currentSlide?.id) return;
 
     setDeleting(true);
     setStatusMessage(null);
@@ -130,8 +125,9 @@ export default function AdminHeroManagementPage() {
       if (currentSlide.mobile_image_url) await deleteFromCloudinary(currentSlide.mobile_image_url);
 
       await deleteHero(currentSlide.id);
+      setShowDeleteModal(false);
       setActiveSlideIndex(0);
-      setStatusMessage({ type: "success", text: "Slide and images deleted successfully!" });
+      setStatusMessage({ type: "success", text: "Hero slide deleted successfully!" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete slide";
       setStatusMessage({ type: "error", text: msg });
@@ -276,7 +272,7 @@ export default function AdminHeroManagementPage() {
     }
   };
 
-  if (authLoading || heroLoading) {
+  if (heroLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
@@ -329,15 +325,15 @@ export default function AdminHeroManagementPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                {heroSlides.length > 1 && (
+                {(heroSlides.length > 1 || activeSlideIndex >= heroSlides.length) && (
                   <button
                     type="button"
-                    onClick={handleDeleteSlide}
+                    onClick={handleOpenDelete}
                     disabled={deleting}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    {deleting ? "Deleting..." : `Delete Slide ${activeSlideIndex + 1}`}
+                    {activeSlideIndex >= heroSlides.length ? "Discard Draft" : `Delete Slide ${activeSlideIndex + 1}`}
                   </button>
                 )}
 
@@ -774,6 +770,92 @@ export default function AdminHeroManagementPage() {
           </div>
         </div>
       </main>
+
+      {/* Delete Hero Slide Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-sm border border-neutral-200 shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+              <div className="flex items-center gap-2.5 text-red-600">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                  <Trash2 className="w-4 h-4 text-red-600" />
+                </div>
+                <h3 className="text-base font-bold text-black">Delete Hero Slide</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="text-neutral-400 hover:text-black p-1 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-600 leading-relaxed">
+              Are you sure you want to permanently delete <span className="font-bold text-black">Slide {activeSlideIndex + 1}</span>? This will remove the slide and its associated images from the hero carousel.
+            </p>
+
+            {/* Slide Preview Card in Modal */}
+            <div className="flex items-center gap-3 p-3 bg-neutral-50 rounded-sm border border-neutral-200">
+              <div className="relative w-16 h-12 rounded-sm overflow-hidden bg-neutral-200 shrink-0">
+                {formData.image_url || formData.mobile_image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={formData.image_url || formData.mobile_image_url}
+                    alt={formData.title || `Slide ${activeSlideIndex + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-xs font-bold text-black truncate">
+                  {formData.title || `Slide ${activeSlideIndex + 1}`}
+                </h4>
+                {formData.subheading && (
+                  <p className="text-[11px] text-neutral-500 font-medium truncate mt-0.5">
+                    {formData.subheading}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-sm border border-neutral-300 text-xs font-semibold text-black hover:bg-neutral-100 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteSlide}
+                disabled={deleting}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-sm text-xs font-semibold text-white bg-red-600 hover:bg-red-700 shadow-xs transition-colors cursor-pointer disabled:opacity-60"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete Slide
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

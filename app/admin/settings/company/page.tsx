@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import {
   Loader2,
   Save,
@@ -29,21 +27,12 @@ import AdminToast, { ToastMessage } from "@/components/AdminToast";
 const DRAFT_STORAGE_KEY = "linda_company_settings_draft";
 
 export default function AdminCompanySettingsPage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const { companySettings, companySettingsLoading, saveCompanySettings } = useStore();
 
   const [formData, setFormData] = useState<CompanySettingsData>(defaultCompanySettings);
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<ToastMessage | null>(null);
   const [hasDraft, setHasDraft] = useState(false);
-
-  // Auth redirect
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/admin/login");
-    }
-  }, [user, authLoading, router]);
 
   // Sync state from context & restore any unsaved local draft once
   useEffect(() => {
@@ -135,7 +124,7 @@ export default function AdminCompanySettingsPage() {
     }
   };
 
-  if (authLoading || companySettingsLoading) {
+  if (companySettingsLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">

@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useState, useRef } from "react";
 import { useStore, CategoryItem } from "@/context/StoreContext";
 import {
   Loader2,
@@ -35,8 +33,6 @@ const emptyCategoryForm: CategoryFormData = {
 };
 
 export default function AdminCategoriesPage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const {
     categories,
     categoriesLoading,
@@ -52,15 +48,9 @@ export default function AdminCategoriesPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryItem | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Auth redirect
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/admin/login");
-    }
-  }, [user, authLoading, router]);
 
   // Open Create Modal
   const handleOpenCreate = () => {
@@ -186,11 +176,15 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  // Delete Category
-  const handleDelete = async (cat: CategoryItem) => {
-    if (!confirm(`Are you sure you want to delete category "${cat.name}"?`)) {
-      return;
-    }
+  // Open Delete Confirmation Modal
+  const handleDeleteClick = (cat: CategoryItem) => {
+    setCategoryToDelete(cat);
+  };
+
+  // Confirm Delete Category
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    const cat = categoryToDelete;
 
     setDeletingId(cat.id);
     setStatusMessage(null);
@@ -200,7 +194,8 @@ export default function AdminCategoriesPage() {
         await deleteFromCloudinary(cat.image_url);
       }
       await deleteCategory(cat.id);
-      setStatusMessage({ type: "success", text: "Category deleted successfully!" });
+      setStatusMessage({ type: "success", text: `Category "${cat.name}" deleted successfully!` });
+      setCategoryToDelete(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete category";
       setStatusMessage({ type: "error", text: msg });
@@ -209,7 +204,7 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  if (authLoading || categoriesLoading) {
+  if (categoriesLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
@@ -312,16 +307,11 @@ export default function AdminCategoriesPage() {
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(cat)}
-                          disabled={deletingId === cat.id}
-                          className="p-1.5 bg-red-600/90 hover:bg-red-600 text-white rounded-sm shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                          onClick={() => handleDeleteClick(cat)}
+                          className="p-1.5 bg-red-600/90 hover:bg-red-600 text-white rounded-sm shadow-xs transition-colors cursor-pointer"
                           title="Delete Category"
                         >
-                          {deletingId === cat.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-3.5 h-3.5" />
-                          )}
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -486,6 +476,79 @@ export default function AdminCategoriesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete Category Confirmation Modal */}
+      {categoryToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-sm border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            {/* Header with warning badge */}
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-black">Delete Category</h3>
+                <p className="text-xs text-neutral-500 font-medium mt-1 leading-relaxed">
+                  Are you sure you want to delete this category? This action cannot be undone and will permanently remove it from your store.
+                </p>
+              </div>
+            </div>
+
+            {/* Category Preview Card */}
+            <div className="flex items-center gap-3 p-3 bg-neutral-50 rounded-sm border border-neutral-200">
+              <div className="relative w-12 h-12 rounded-sm overflow-hidden bg-neutral-200 shrink-0">
+                {categoryToDelete.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={categoryToDelete.image_url}
+                    alt={categoryToDelete.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                    <Tag className="w-5 h-5" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-xs font-bold text-black truncate">{categoryToDelete.name}</h4>
+                <p className="text-[11px] text-neutral-500 font-medium truncate mt-0.5">
+                  Slug: {categoryToDelete.slug}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setCategoryToDelete(null)}
+                disabled={Boolean(deletingId)}
+                className="px-4 py-2 rounded-sm border border-neutral-300 text-xs font-semibold text-black hover:bg-neutral-100 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteCategory}
+                disabled={Boolean(deletingId)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-sm text-xs font-semibold text-white bg-red-600 hover:bg-red-700 shadow-xs transition-colors cursor-pointer disabled:opacity-60"
+              >
+                {deletingId ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete Category
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

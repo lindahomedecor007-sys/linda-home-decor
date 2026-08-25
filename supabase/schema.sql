@@ -247,3 +247,23 @@ CREATE POLICY "Allow public read access on about_section" ON public.about_sectio
 
 CREATE POLICY "Allow all access on about_section" ON public.about_section
   FOR ALL USING (true) WITH CHECK (true);
+
+-- Services Section Table
+CREATE TABLE IF NOT EXISTS public.services_section (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  heading TEXT DEFAULT '',
+  banner_image_url TEXT DEFAULT '',
+  services JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+GRANT ALL ON TABLE public.services_section TO anon, authenticated, service_role;
+
+ALTER TABLE public.services_section ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read access on services_section" ON public.services_section
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow all access on services_section" ON public.services_section
+  FOR ALL USING (true) WITH CHECK (true);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -11,6 +12,7 @@ import {
   Clock,
   ArrowRight,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import {
   WhatsappIcon,
@@ -24,14 +26,20 @@ const navLinks = [
   { name: "About Us", href: "/about" },
   { name: "Products", href: "/products" },
   { name: "Services", href: "/services" },
-  { name: "Projects", href: "/projects" },
-  { name: "Gallery", href: "/gallery" },
   { name: "Contact Us", href: "/contact" },
 ];
 
 export default function Footer() {
   const pathname = usePathname();
   const { companySettings, categories } = useStore();
+  const [openAccordions, setOpenAccordions] = useState<{ [key: string]: boolean }>({});
+
+  const toggleAccordion = (key: string) => {
+    setOpenAccordions((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   // Hide footer in admin panel
   if (pathname?.startsWith("/admin")) {
@@ -49,8 +57,8 @@ export default function Footer() {
   return (
     <footer className="w-full bg-[#18130B] text-white border-t border-[#FF9E15]/20 selection:bg-[#FF9E15] selection:text-white">
       {/* Top Decorative Gold Accent Line */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-10 lg:gap-12">
           {/* Column 1: Brand Info & Description (lg:col-span-4) */}
           <div className="lg:col-span-4 space-y-2">
             <Link href="/" className="inline-flex items-end group">
@@ -128,72 +136,120 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 2: Quick Links / Pages (lg:col-span-2) */}
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
+          {/* Column 2: Quick Links / Pages (lg:col-span-2) - Accordion on mobile */}
+          <div className="lg:col-span-2 border-b border-white/10 md:border-b-0 pb-4 md:pb-0">
+            {/* Desktop Header */}
+            <h4 className="hidden md:block text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
               Quick Links
             </h4>
-            <ul className="space-y-2.5 text-sm">
-              {navLinks.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-neutral-300 hover:text-[#FF9E15] transition-colors flex items-center gap-1.5 group"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5 text-[#FF9E15] opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
-                    <span>{link.name}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Column 3: Categories (lg:col-span-2) */}
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
-              Collections
-            </h4>
-            <ul className="space-y-2.5 text-sm">
-              {categories && categories.length > 0 ? (
-                categories.slice(0, 6).map((cat) => (
-                  <li key={cat.id}>
+            {/* Mobile Accordion Toggle */}
+            <button
+              type="button"
+              onClick={() => toggleAccordion("quickLinks")}
+              className="flex md:hidden items-center justify-between w-full py-1 text-sm font-bold text-white uppercase tracking-wider text-left cursor-pointer select-none"
+              aria-expanded={Boolean(openAccordions["quickLinks"])}
+            >
+              <span>Quick Links</span>
+              <ChevronDown
+                className={`w-4 h-4 text-[#FF9E15] transition-transform duration-200 ${
+                  openAccordions["quickLinks"] ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* Content (Collapsible on mobile, always visible on md+) */}
+            <div
+              className={`transition-all duration-200 ease-in-out md:!block ${
+                openAccordions["quickLinks"] ? "block pt-3" : "hidden md:block md:pt-4"
+              }`}
+            >
+              <ul className="space-y-2.5 text-sm">
+                {navLinks.map((link) => (
+                  <li key={link.name}>
                     <Link
-                      href={`/products?category=${encodeURIComponent(cat.slug || cat.name)}`}
-                      className="text-neutral-300 hover:text-[#FF9E15] transition-colors flex items-center gap-1.5 group"
+                      href={link.href}
+                      className="text-neutral-300 hover:text-[#FF9E15] transition-colors flex items-center gap-1.5 group py-0.5"
                     >
                       <ChevronRight className="w-3.5 h-3.5 text-[#FF9E15] opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
-                      <span className="truncate">{cat.name}</span>
+                      <span>{link.name}</span>
                     </Link>
                   </li>
-                ))
-              ) : (
-                <>
-                  <li>
-                    <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors">
-                      Living Room
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors">
-                      Bedroom
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors">
-                      Dining & Kitchen
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors">
-                      Office Decor
-                    </Link>
-                  </li>
-                </>
-              )}
-            </ul>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* Column 4: Contact & Address Information (lg:col-span-4) */}
+          {/* Column 3: Categories (lg:col-span-2) - Accordion on mobile */}
+          <div className="lg:col-span-2 border-b border-white/10 md:border-b-0 pb-4 md:pb-0">
+            {/* Desktop Header */}
+            <h4 className="hidden md:block text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
+              Collections
+            </h4>
+
+            {/* Mobile Accordion Toggle */}
+            <button
+              type="button"
+              onClick={() => toggleAccordion("collections")}
+              className="flex md:hidden items-center justify-between w-full py-1 text-sm font-bold text-white uppercase tracking-wider text-left cursor-pointer select-none"
+              aria-expanded={Boolean(openAccordions["collections"])}
+            >
+              <span>Collections</span>
+              <ChevronDown
+                className={`w-4 h-4 text-[#FF9E15] transition-transform duration-200 ${
+                  openAccordions["collections"] ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* Content (Collapsible on mobile, always visible on md+) */}
+            <div
+              className={`transition-all duration-200 ease-in-out md:!block ${
+                openAccordions["collections"] ? "block pt-3" : "hidden md:block md:pt-4"
+              }`}
+            >
+              <ul className="space-y-2.5 text-sm">
+                {categories && categories.length > 0 ? (
+                  categories.slice(0, 6).map((cat) => (
+                    <li key={cat.id}>
+                      <Link
+                        href={`/products?category=${encodeURIComponent(cat.slug || cat.name)}`}
+                        className="text-neutral-300 hover:text-[#FF9E15] transition-colors flex items-center gap-1.5 group py-0.5"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5 text-[#FF9E15] opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
+                        <span className="truncate">{cat.name}</span>
+                      </Link>
+                    </li>
+                  ))
+                ) : (
+                  <>
+                    <li>
+                      <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors block py-0.5">
+                        Living Room
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors block py-0.5">
+                        Bedroom
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors block py-0.5">
+                        Dining & Kitchen
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors block py-0.5">
+                        Office Decor
+                      </Link>
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+          </div>
+
+          {/* Column 4: Contact & Address Information (lg:col-span-4) - NOT ACCORDION */}
           <div className="lg:col-span-4 space-y-4">
             <h4 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
               Contact & Location

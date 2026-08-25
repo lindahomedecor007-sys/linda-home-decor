@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useState, useRef } from "react";
 import { useStore, ProductItem } from "@/context/StoreContext";
 import {
   Package,
@@ -48,8 +46,6 @@ const emptyProductForm: ProductFormData = {
 };
 
 export default function AdminProductsPage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const {
     products,
     productsLoading,
@@ -71,16 +67,10 @@ export default function AdminProductsPage() {
   const [uploadingMain, setUploadingMain] = useState(false);
   const [uploadingSub, setUploadingSub] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [productToDelete, setProductToDelete] = useState<ProductItem | null>(null);
 
   const mainFileInputRef = useRef<HTMLInputElement>(null);
   const subFileInputRef = useRef<HTMLInputElement>(null);
-
-  // Auth redirect
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/admin/login");
-    }
-  }, [user, authLoading, router]);
 
   // Open Create Modal
   const handleOpenCreate = () => {
@@ -292,26 +282,30 @@ export default function AdminProductsPage() {
     }
   };
 
-  // Delete Product
-  const handleDelete = async (prod: ProductItem) => {
-    if (!confirm(`Are you sure you want to delete product "${prod.name}"?`)) {
-      return;
-    }
+  // Delete Product Trigger
+  const handleDelete = (prod: ProductItem) => {
+    setProductToDelete(prod);
+  };
 
-    setDeletingId(prod.id);
+  // Confirm Delete Product
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
+
+    setDeletingId(productToDelete.id);
     setStatusMessage(null);
 
     try {
-      if (prod.image_url) {
-        await deleteFromCloudinary(prod.image_url);
+      if (productToDelete.image_url) {
+        await deleteFromCloudinary(productToDelete.image_url);
       }
-      if (prod.sub_images && prod.sub_images.length > 0) {
-        for (const sub of prod.sub_images) {
+      if (productToDelete.sub_images && productToDelete.sub_images.length > 0) {
+        for (const sub of productToDelete.sub_images) {
           await deleteFromCloudinary(sub);
         }
       }
-      await deleteProduct(prod.id);
+      await deleteProduct(productToDelete.id);
       setStatusMessage({ type: "success", text: "Product deleted successfully!" });
+      setProductToDelete(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete product";
       setStatusMessage({ type: "error", text: msg });
@@ -334,7 +328,7 @@ export default function AdminProductsPage() {
     return matchesSearch && matchesCategory;
   });
 
-  if (authLoading || productsLoading) {
+  if (productsLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
@@ -793,6 +787,88 @@ export default function AdminProductsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Product Confirmation Modal */}
+      {productToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-sm border border-neutral-200 shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+              <div className="flex items-center gap-2 text-red-600">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                  <Trash2 className="w-4 h-4 text-red-600" />
+                </div>
+                <h3 className="text-base font-bold text-black">Delete Product</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProductToDelete(null)}
+                disabled={Boolean(deletingId)}
+                className="text-neutral-400 hover:text-black p-1 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-600 leading-relaxed">
+              Are you sure you want to permanently delete <span className="font-bold text-black">&quot;{productToDelete.name}&quot;</span>? All specifications and gallery photos will be removed.
+            </p>
+
+            {/* Product Preview Card */}
+            <div className="flex items-center gap-3 p-3 bg-neutral-50 rounded-sm border border-neutral-200">
+              <div className="relative w-12 h-12 rounded-sm overflow-hidden bg-neutral-200 shrink-0">
+                {productToDelete.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={productToDelete.image_url}
+                    alt={productToDelete.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                    <Package className="w-5 h-5" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-xs font-bold text-black truncate">{productToDelete.name}</h4>
+                <p className="text-[11px] text-neutral-500 font-medium truncate mt-0.5">
+                  Category: {productToDelete.category_name || productToDelete.category || "Uncategorized"}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setProductToDelete(null)}
+                disabled={Boolean(deletingId)}
+                className="px-4 py-2 rounded-sm border border-neutral-300 text-xs font-semibold text-black hover:bg-neutral-100 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteProduct}
+                disabled={Boolean(deletingId)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-sm text-xs font-semibold text-white bg-red-600 hover:bg-red-700 shadow-xs transition-colors cursor-pointer disabled:opacity-60"
+              >
+                {deletingId ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete Product
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -133,7 +133,7 @@ export default function WhoWeAreSection({ data: propData }: WhoWeAreSectionProps
   const hasStats = Boolean(show_stats && validStats.length > 0);
 
   return (
-    <section ref={sectionRef} className="w-full py-10 sm:py-14 md:pt-9 md:pb-9 bg-white text-neutral-900 select-none">
+    <section ref={sectionRef} className="w-full py-10 sm:py-14 md:pt-12 md:pb-12 bg-white text-neutral-900 select-none">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 lg:items-stretch">
           {/* Left Column: Featured Image */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { CompanySettingsData } from "@/lib/companySettings";
 import {
@@ -12,6 +13,7 @@ import {
   Send,
   CheckCircle2,
   AlertCircle,
+  Tag,
 } from "lucide-react";
 import {
   WhatsappIcon,
@@ -33,6 +35,9 @@ export default function ContactSection({
   className = "",
   companySettings: propCompanySettings,
 }: ContactSectionProps) {
+  const searchParams = useSearchParams();
+  const productParam = searchParams?.get("product") || "";
+
   const { companySettings: contextCompanySettings, addEnquiry } = useStore();
   const companySettings = propCompanySettings || contextCompanySettings;
 
@@ -71,11 +76,15 @@ export default function ContactSection({
 
     setSubmitting(true);
     try {
+      const finalNote = productParam
+        ? (formData.note.trim() ? `[Product: ${productParam}]\n${formData.note.trim()}` : `[Product: ${productParam}]`)
+        : formData.note.trim();
+
       await addEnquiry({
         name: formData.name,
         mobile_number: formData.mobile_number,
         email: formData.email,
-        note: formData.note,
+        note: finalNote,
       });
 
       setSuccess(true);
@@ -99,13 +108,13 @@ export default function ContactSection({
   };
 
   return (
-    <section className={`w-full py-16 sm:py-20 md:pt-9 md:pb-12 bg-white text-neutral-900 ${className}`}>
+    <section className={`w-full py-16 sm:py-20 md:pt-12 md:pb-12 bg-white text-neutral-900 ${className}`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           {/* Left Column: Heading, Description, Company Details & Social Links */}
           <div className="w-full space-y-8">
             <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-neutral-900 leading-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-neutral-900 leading-tight">
                 {title}
               </h2>
               <p className="text-sm sm:text-base text-neutral-600 leading-relaxed">
@@ -264,6 +273,24 @@ export default function ContactSection({
           {/* Right Column: Clean Form */}
           <div className="w-full">
             <div className="space-y-6">
+              {/* Selected Product Banner */}
+              {productParam && (
+                <div className="p-3.5 bg-amber-50/90 border border-amber-200/90 rounded-sm flex items-center justify-between gap-3 animate-fade-in shadow-2xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-7 h-7 rounded-sm bg-[#FF9E15] text-white flex items-center justify-center shrink-0">
+                      <Tag className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Product Enquiry</p>
+                      <p className="text-xs font-bold text-neutral-900 truncate">{productParam}</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#FF9E15] bg-white px-2.5 py-0.5 rounded-xs border border-amber-200 shrink-0">
+                    Active Product
+                  </span>
+                </div>
+              )}
+
               {/* Error Notification */}
               {errorMsg && (
                 <div className="p-4 rounded-sm bg-red-50 border border-red-200 text-red-800 flex items-center gap-3 text-sm animate-fade-in">
