@@ -1,0 +1,284 @@
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useStore } from "@/context/StoreContext";
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  ArrowRight,
+  ChevronRight,
+} from "lucide-react";
+import {
+  WhatsappIcon,
+  InstagramIcon,
+  FacebookIcon,
+  YoutubeIcon,
+} from "@/components/SocialIcons";
+
+const navLinks = [
+  { name: "Home", href: "/" },
+  { name: "About Us", href: "/about" },
+  { name: "Products", href: "/products" },
+  { name: "Services", href: "/services" },
+  { name: "Projects", href: "/projects" },
+  { name: "Gallery", href: "/gallery" },
+  { name: "Contact Us", href: "/contact" },
+];
+
+export default function Footer() {
+  const pathname = usePathname();
+  const { companySettings, categories } = useStore();
+
+  // Hide footer in admin panel
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
+  const currentYear = new Date().getFullYear();
+
+  // Clean numbers for WhatsApp link
+  const rawNum =
+    companySettings?.whatsapp_number || companySettings?.phone || "";
+  const cleanNum = rawNum.replace(/[^0-9]/g, "");
+  const whatsappHref = cleanNum ? `https://wa.me/${cleanNum}` : "#";
+
+  return (
+    <footer className="w-full bg-[#18130B] text-white border-t border-[#FF9E15]/20 selection:bg-[#FF9E15] selection:text-white">
+      {/* Top Decorative Gold Accent Line */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 lg:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12">
+          {/* Column 1: Brand Info & Description (lg:col-span-4) */}
+          <div className="lg:col-span-4 space-y-2">
+            <Link href="/" className="inline-flex items-end group">
+              <Image
+                src="/logo/logo.png"
+                alt="Linda Home Decor"
+                width={48}
+                height={48}
+                className="h-10 object-contain"
+              />
+              <span className="text-base sm:text-lg font-bold tracking-widest text-white uppercase group-hover:text-[#FF9E15] transition-colors leading-tight">
+                LINDA HOME DECOR
+              </span>
+            </Link>
+
+            <p className="text-sm text-neutral-300 m-0 max-w-sm">
+              {companySettings?.tagline ||
+                "Transforming spaces with elegance and precision. Discover curated furniture, custom interiors, and premium decor solutions."}
+            </p>
+
+            {/* Social Media Links with Authentic Brand Colors */}
+            <div className="space-y-3 pt-2">
+              <span className="block text-xs font-bold text-neutral-200 tracking-wider uppercase">
+                Connect With Us
+              </span>
+              <div className="flex items-center gap-3">
+                {/* WhatsApp */}
+                <a
+                  href={whatsappHref}
+                  target={whatsappHref !== "#" ? "_blank" : "_self"}
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 text-[#25D366] hover:bg-[#25D366] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-xs"
+                  aria-label="WhatsApp"
+                  title="WhatsApp"
+                >
+                  <WhatsappIcon className="w-4 h-4" />
+                </a>
+
+                {/* Instagram */}
+                <a
+                  href={companySettings?.instagram_url || "#"}
+                  target={companySettings?.instagram_url ? "_blank" : "_self"}
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 text-[#E4405F] hover:bg-[#E4405F] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-xs"
+                  aria-label="Instagram"
+                  title="Instagram"
+                >
+                  <InstagramIcon className="w-4 h-4" />
+                </a>
+
+                {/* Facebook */}
+                <a
+                  href={companySettings?.facebook_url || "#"}
+                  target={companySettings?.facebook_url ? "_blank" : "_self"}
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 text-[#1877F2] hover:bg-[#1877F2] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-xs"
+                  aria-label="Facebook"
+                  title="Facebook"
+                >
+                  <FacebookIcon className="w-4 h-4" />
+                </a>
+
+                {/* YouTube */}
+                <a
+                  href={companySettings?.youtube_url || "#"}
+                  target={companySettings?.youtube_url ? "_blank" : "_self"}
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 text-[#FF0000] hover:bg-[#FF0000] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-xs"
+                  aria-label="YouTube"
+                  title="YouTube"
+                >
+                  <YoutubeIcon className="w-4 h-4" />
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 2: Quick Links / Pages (lg:col-span-2) */}
+          <div className="lg:col-span-2 space-y-4">
+            <h4 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
+              Quick Links
+            </h4>
+            <ul className="space-y-2.5 text-sm">
+              {navLinks.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="text-neutral-300 hover:text-[#FF9E15] transition-colors flex items-center gap-1.5 group"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5 text-[#FF9E15] opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
+                    <span>{link.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 3: Categories (lg:col-span-2) */}
+          <div className="lg:col-span-2 space-y-4">
+            <h4 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
+              Collections
+            </h4>
+            <ul className="space-y-2.5 text-sm">
+              {categories && categories.length > 0 ? (
+                categories.slice(0, 6).map((cat) => (
+                  <li key={cat.id}>
+                    <Link
+                      href={`/products?category=${encodeURIComponent(cat.slug || cat.name)}`}
+                      className="text-neutral-300 hover:text-[#FF9E15] transition-colors flex items-center gap-1.5 group"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5 text-[#FF9E15] opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
+                      <span className="truncate">{cat.name}</span>
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li>
+                    <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors">
+                      Living Room
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors">
+                      Bedroom
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors">
+                      Dining & Kitchen
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/products" className="text-neutral-300 hover:text-[#FF9E15] transition-colors">
+                      Office Decor
+                    </Link>
+                  </li>
+                </>
+              )}
+            </ul>
+          </div>
+
+          {/* Column 4: Contact & Address Information (lg:col-span-4) */}
+          <div className="lg:col-span-4 space-y-4">
+            <h4 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
+              Contact & Location
+            </h4>
+            <div className="space-y-3.5 text-sm text-neutral-300">
+              {/* Address */}
+              {companySettings?.address && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-4 h-4 text-[#FF9E15] shrink-0 mt-1" />
+                  <p className="leading-snug">
+                    {companySettings.address}
+                    {companySettings.city ? `, ${companySettings.city}` : ""}
+                    {companySettings.state ? `, ${companySettings.state}` : ""}
+                    {companySettings.postal_code ? ` - ${companySettings.postal_code}` : ""}
+                    {companySettings.country ? `, ${companySettings.country}` : ""}
+                  </p>
+                </div>
+              )}
+
+              {/* Phone */}
+              {companySettings?.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="w-4 h-4 text-[#FF9E15] shrink-0" />
+                  <a
+                    href={`tel:${companySettings.phone}`}
+                    className="hover:text-[#FF9E15] font-medium transition-colors"
+                  >
+                    {companySettings.phone}
+                    {companySettings.alternate_phone && (
+                      <span className="text-xs text-neutral-400 ml-2">
+                        / {companySettings.alternate_phone}
+                      </span>
+                    )}
+                  </a>
+                </div>
+              )}
+
+              {/* Email */}
+              {companySettings?.email && (
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-[#FF9E15] shrink-0" />
+                  <a
+                    href={`mailto:${companySettings.email}`}
+                    className="hover:text-[#FF9E15] transition-colors truncate"
+                  >
+                    {companySettings.email}
+                  </a>
+                </div>
+              )}
+
+              {/* Working Hours */}
+              {companySettings?.opening_hours && (
+                <div className="flex items-start gap-3">
+                  <Clock className="w-4 h-4 text-[#FF9E15] shrink-0 mt-0.5" />
+                  <span className="text-xs text-neutral-300 leading-snug">
+                    {companySettings.opening_hours}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar: Copyright */}
+        <div className="mt-12 sm:mt-16 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-400">
+          <p>
+            © {currentYear}{" "}
+            <span className="text-white font-medium">
+              {companySettings?.company_name || "Linda Home Decor"}
+            </span>
+            . All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            <Link href="/about" className="hover:text-[#FF9E15] transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/contact" className="hover:text-[#FF9E15] transition-colors">
+              Terms & Conditions
+            </Link>
+            <Link href="/contact" className="hover:text-[#FF9E15] transition-colors">
+              Support
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
