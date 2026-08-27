@@ -328,36 +328,20 @@ export default function AdminProductsPage() {
     return matchesSearch && matchesCategory;
   });
 
-  if (productsLoading) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15]" />
-          <p className="text-sm font-medium text-neutral-500">Loading Products Catalog...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col md:flex-row text-neutral-900 md:h-screen md:overflow-hidden">
-      {/* Reusable Admin Sidebar */}
-      <AdminSidebar />
+    <>
+      {/* Reusable Top Header */}
+      <AdminHeader title="Products Management" />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 md:h-screen overflow-hidden">
-        {/* Reusable Top Header */}
-        <AdminHeader title="Products Management" />
+      {/* Reusable Top Center Toast */}
+      <AdminToast
+        message={statusMessage}
+        onClose={() => setStatusMessage(null)}
+        duration={3500}
+      />
 
-        {/* Reusable Top Center Toast */}
-        <AdminToast
-          message={statusMessage}
-          onClose={() => setStatusMessage(null)}
-          duration={3500}
-        />
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
           <div className="max-w-6xl w-full mx-auto space-y-6">
             {/* Header & Filter Controls Bar */}
             <div className="bg-white rounded-sm border border-neutral-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -369,21 +353,21 @@ export default function AdminProductsPage() {
                   placeholder="Search products by name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs rounded-sm border border-neutral-300 bg-neutral-50/50 text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
+                  className="w-full pl-9 pr-3.5 py-2 text-sm rounded-sm border border-neutral-300 bg-neutral-50/50 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
                 />
               </div>
 
-              {/* Category Filter + Add Product Button */}
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+              {/* Action Buttons & Category Filter */}
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                 <select
                   value={selectedCategoryFilter}
                   onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-                  className="px-3 py-2 text-xs rounded-sm border border-neutral-300 bg-neutral-50/50 text-black font-medium focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all cursor-pointer"
+                  className="px-3 py-2 text-xs rounded-sm border border-neutral-300 bg-neutral-50/50 text-black font-medium focus:outline-none focus:ring-2 focus:ring-[#FF9E15] cursor-pointer"
                 >
-                  <option value="all">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                  <option value="all">All Categories ({categories.length})</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
                     </option>
                   ))}
                 </select>
@@ -399,7 +383,12 @@ export default function AdminProductsPage() {
             </div>
 
             {/* Products Grid */}
-            {filteredProducts.length === 0 ? (
+            {productsLoading && products.length === 0 ? (
+              <div className="bg-white rounded-sm border border-neutral-200 p-12 text-center space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15] mx-auto" />
+                <p className="text-sm font-medium text-neutral-500">Loading Products Catalog...</p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="bg-white rounded-sm border border-dashed border-neutral-300 p-12 text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-amber-50 text-[#FF9E15] flex items-center justify-center mx-auto">
                   <Package className="w-6 h-6" />
@@ -512,7 +501,6 @@ export default function AdminProductsPage() {
             )}
           </div>
         </div>
-      </main>
 
       {/* Create / Edit Product Modal */}
       {isModalOpen && (
@@ -872,6 +860,6 @@ export default function AdminProductsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

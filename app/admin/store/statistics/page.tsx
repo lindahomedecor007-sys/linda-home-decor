@@ -22,7 +22,7 @@ import AdminToast, { ToastMessage } from "@/components/AdminToast";
 export default function AdminStatisticsManagementPage() {
   const { statisticsData, statisticsLoading, saveStatistics } = useStore();
 
-  const [formData, setFormData] = useState<StatisticsSectionData>(defaultStatisticsData);
+  const [formData, setFormData] = useState<StatisticsSectionData>(() => statisticsData || defaultStatisticsData);
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<ToastMessage | null>(null);
 
@@ -30,7 +30,7 @@ export default function AdminStatisticsManagementPage() {
   const [newValue, setNewValue] = useState("");
   const [newLabel, setNewLabel] = useState("");
 
-  // Sync with context
+  // Sync with context if it updates
   useEffect(() => {
     if (statisticsData) {
       setFormData(statisticsData);
@@ -120,38 +120,28 @@ export default function AdminStatisticsManagementPage() {
     }
   };
 
-  if (statisticsLoading) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15]" />
-          <p className="text-sm font-medium text-neutral-500">Loading Statistics Settings...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col md:flex-row text-neutral-900 md:h-screen md:overflow-hidden">
-      {/* Reusable Admin Sidebar */}
-      <AdminSidebar />
+    <>
+      {/* Reusable Top Header */}
+      <AdminHeader title="Statistics Section Management" />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 md:h-screen overflow-hidden">
-        {/* Reusable Top Header */}
-        <AdminHeader title="Statistics Section Management" />
+      {/* Reusable Top Center Toast */}
+      <AdminToast
+        message={statusMessage}
+        onClose={() => setStatusMessage(null)}
+        duration={3500}
+      />
 
-        {/* Reusable Top Center Toast */}
-        <AdminToast
-          message={statusMessage}
-          onClose={() => setStatusMessage(null)}
-          duration={3500}
-        />
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
-          <div className="max-w-5xl w-full mx-auto space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          {statisticsLoading && !statisticsData ? (
+            <div className="max-w-5xl w-full mx-auto bg-white rounded-sm border border-neutral-200 p-12 text-center space-y-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15] mx-auto" />
+              <p className="text-sm font-medium text-neutral-500">Loading Statistics Settings...</p>
+            </div>
+          ) : (
+            <div className="max-w-5xl w-full mx-auto space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
               {/* Section Header Card */}
               <div className="bg-white rounded-sm border border-neutral-200 p-5 sm:p-6 shadow-xs space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
@@ -351,8 +341,8 @@ export default function AdminStatisticsManagementPage() {
               </div>
             </form>
           </div>
+          )}
         </div>
-      </main>
-    </div>
+    </>
   );
 }

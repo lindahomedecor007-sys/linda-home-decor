@@ -29,7 +29,7 @@ const DRAFT_STORAGE_KEY = "linda_company_settings_draft";
 export default function AdminCompanySettingsPage() {
   const { companySettings, companySettingsLoading, saveCompanySettings } = useStore();
 
-  const [formData, setFormData] = useState<CompanySettingsData>(defaultCompanySettings);
+  const [formData, setFormData] = useState<CompanySettingsData>(() => companySettings || defaultCompanySettings);
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<ToastMessage | null>(null);
   const [hasDraft, setHasDraft] = useState(false);
@@ -124,46 +124,36 @@ export default function AdminCompanySettingsPage() {
     }
   };
 
-  if (companySettingsLoading) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15]" />
-          <p className="text-sm font-medium text-neutral-500">Loading Company Details...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col md:flex-row text-neutral-900 md:h-screen md:overflow-hidden">
-      {/* Reusable Admin Sidebar */}
-      <AdminSidebar />
+    <>
+      {/* Reusable Top Header */}
+      <AdminHeader title="Company Details Settings" />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 md:h-screen overflow-hidden">
-        {/* Reusable Top Header */}
-        <AdminHeader title="Company Details Settings" />
+      {/* Reusable Top Center Toast */}
+      <AdminToast
+        message={statusMessage}
+        onClose={() => setStatusMessage(null)}
+        duration={3500}
+      />
 
-        {/* Reusable Top Center Toast */}
-        <AdminToast
-          message={statusMessage}
-          onClose={() => setStatusMessage(null)}
-          duration={3500}
-        />
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
-          <div className="max-w-5xl w-full mx-auto space-y-6">
-            {/* Draft Auto-Restore Notification */}
-            {hasDraft && (
-              <div className="p-3.5 sm:p-4 rounded-sm bg-amber-50/90 border border-amber-300 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs animate-fade-in">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2 h-2 rounded-full bg-[#FF9E15] animate-pulse shrink-0" />
-                  <span>
-                    <strong>Unsaved draft restored:</strong> Your typed changes are saved locally so you won&apos;t lose work. Click <strong>Save Company Details</strong> to update the database.
-                  </span>
-                </div>
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          {companySettingsLoading && !companySettings ? (
+            <div className="max-w-5xl w-full mx-auto bg-white rounded-sm border border-neutral-200 p-12 text-center space-y-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15] mx-auto" />
+              <p className="text-sm font-medium text-neutral-500">Loading Company Details...</p>
+            </div>
+          ) : (
+            <div className="max-w-5xl w-full mx-auto space-y-6">
+              {/* Draft Auto-Restore Notification */}
+              {hasDraft && (
+                <div className="p-3.5 sm:p-4 rounded-sm bg-amber-50/90 border border-amber-300 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs animate-fade-in">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2 h-2 rounded-full bg-[#FF9E15] animate-pulse shrink-0" />
+                    <span>
+                      <strong>Unsaved draft restored:</strong> Your typed changes are saved locally so you won&apos;t lose work. Click <strong>Save Company Details</strong> to update the database.
+                    </span>
+                  </div>
                 <button
                   type="button"
                   onClick={handleDiscardDraft}
@@ -530,8 +520,8 @@ export default function AdminCompanySettingsPage() {
               </div>
             </form>
           </div>
+          )}
         </div>
-      </main>
-    </div>
+    </>
   );
 }

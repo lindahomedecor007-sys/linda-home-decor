@@ -26,7 +26,7 @@ const DRAFT_STORAGE_KEY = "linda_services_section_draft";
 export default function AdminServicesPage() {
   const { servicesData, servicesLoading, saveServices } = useStore();
 
-  const [formData, setFormData] = useState<ServicesSectionData>(defaultServicesData);
+  const [formData, setFormData] = useState<ServicesSectionData>(() => servicesData || defaultServicesData);
   const [saving, setSaving] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingNewIcon, setUploadingNewIcon] = useState(false);
@@ -358,34 +358,26 @@ export default function AdminServicesPage() {
     }
   };
 
-  if (servicesLoading) {
-    return (
-      <div className="min-h-screen bg-neutral-100 flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15]" />
-          <p className="text-sm font-medium text-neutral-500">Loading Services Section...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col md:flex-row text-neutral-900 md:h-screen md:overflow-hidden">
-      <AdminSidebar />
+    <>
+      <AdminHeader title="Services Section" />
 
-      <div className="flex-1 flex flex-col min-w-0 md:h-screen overflow-hidden">
-        <AdminHeader title="Services Section" />
+      <AdminToast
+        message={statusMessage}
+        onClose={() => setStatusMessage(null)}
+        duration={3500}
+      />
 
-        <AdminToast
-          message={statusMessage}
-          onClose={() => setStatusMessage(null)}
-          duration={3500}
-        />
-
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
-          <div className="max-w-5xl mx-auto w-full space-y-6">
-            {/* Header / Summary Card */}
-            <div className="bg-white rounded-sm border border-neutral-200 p-5 sm:p-6 shadow-xs flex items-center justify-between">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          {servicesLoading && !servicesData ? (
+            <div className="max-w-5xl mx-auto w-full bg-white rounded-sm border border-neutral-200 p-12 text-center space-y-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15] mx-auto" />
+              <p className="text-sm font-medium text-neutral-500">Loading Services Section...</p>
+            </div>
+          ) : (
+            <div className="max-w-5xl mx-auto w-full space-y-6">
+              {/* Header / Summary Card */}
+              <div className="bg-white rounded-sm border border-neutral-200 p-5 sm:p-6 shadow-xs flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold text-black flex items-center gap-2">
                   <Layers className="w-4 h-4 text-[#FF9E15]" />
@@ -797,8 +789,8 @@ export default function AdminServicesPage() {
               </div>
             </form>
           </div>
+          )}
         </main>
-      </div>
-    </div>
+    </>
   );
 }

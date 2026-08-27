@@ -65,19 +65,19 @@ export default function Navbar() {
     }, 150);
   };
 
-  const isHomePage = pathname === "/";
+  const isHomePage = !pathname || pathname === "/" || pathname === "";
   const isSolidNav = !isHomePage || isScrolled;
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
         isSolidNav
-          ? "bg-[#ffffff] shadow-xs"
-          : "bg-[#ffffff] shadow-xs md:bg-transparent md:shadow-none"
+          ? "bg-white shadow-md"
+          : "bg-white shadow-xs md:bg-transparent md:shadow-none"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
             <Image
@@ -126,6 +126,13 @@ export default function Navbar() {
                           className="absolute top-[85%] left-0 pt-2 z-50 min-w-[200px]"
                         >
                           <div className="bg-white rounded-sm shadow-xl border border-neutral-100 py-1.5 overflow-hidden">
+                            <Link
+                              href="/products"
+                              onClick={() => setIsProductsHovered(false)}
+                              className="block px-4 py-2 text-sm text-[#FF9E15] hover:bg-[#FF9E15] hover:text-white transition-colors duration-150 font-semibold border-b border-neutral-100"
+                            >
+                              All Products
+                            </Link>
                             {categories && categories.length > 0 ? (
                               categories.map((cat) => (
                                 <Link
@@ -137,15 +144,7 @@ export default function Navbar() {
                                   {cat.name}
                                 </Link>
                               ))
-                            ) : (
-                              <Link
-                                href="/products"
-                                onClick={() => setIsProductsHovered(false)}
-                                className="block px-4 py-2 text-sm text-neutral-800 hover:bg-[#FF9E15] hover:text-white transition-colors duration-150 font-medium"
-                              >
-                                Products
-                              </Link>
-                            )}
+                            ) : null}
                           </div>
                         </motion.div>
                       )}
@@ -172,7 +171,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center">
             <Link
               href="/contact"
-              className="bg-[#FF9E15] hover:bg-[#FF9E15]/90 text-white font-medium px-10 py-1.5 rounded-xs shadow-sm transition-all duration-200"
+              className="bg-[#FF9E15] hover:bg-[#FF9E15]/90 text-white font-medium px-10 py-2 rounded-full shadow-sm transition-all duration-200"
             >
               Enquiry
             </Link>
@@ -227,13 +226,13 @@ export default function Navbar() {
           />
 
           {/* Right Drawer Content */}
-          <div className="relative z-10 w-[80%] h-full bg-[#18130B] text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto animate-slide-in-right">
+          <div className="relative z-10 w-[80%] h-full bg-white text-neutral-900 shadow-2xl flex flex-col justify-between p-6 overflow-y-auto animate-slide-in-right">
             <div>
               {/* Drawer Header */}
-              <div className="flex items-center justify-between pb-5 border-b border-white/10">
+              <div className="flex items-center justify-between pb-5">
                 <Link href="/" onClick={closeMobileMenu}>
                   <Image
-                    src="/logo/logo.png"
+                    src="/logo/logo-with-name.png"
                     alt="Linda Home Decor Logo"
                     width={140}
                     height={45}
@@ -244,7 +243,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={closeMobileMenu}
-                  className="p-1.5 text-white hover:text-[#FF9E15] transition-colors focus:outline-none"
+                  className="p-1.5 text-neutral-900 hover:text-[#FF9E15] transition-colors focus:outline-none"
                   aria-label="Close menu"
                 >
                   <svg
@@ -264,12 +263,12 @@ export default function Navbar() {
                 {navLinks.map((link) => {
                   if (link.name === "Products") {
                     return (
-                      <div key={link.name} className="flex flex-col border-b border-white/10 pb-2">
+                      <div key={link.name} className="flex flex-col pb-2">
                         <div className="flex items-center justify-between py-2">
                           <Link
                             href="/products"
                             onClick={closeMobileMenu}
-                            className="text-white font-medium text-base transition-colors duration-200 hover:text-[#FF9E15]"
+                            className="text-neutral-900 font-medium text-base transition-colors duration-200 hover:text-[#FF9E15]"
                           >
                             Products
                           </Link>
@@ -277,7 +276,7 @@ export default function Navbar() {
                             <button
                               type="button"
                               onClick={() => setIsMobileProductsOpen((prev) => !prev)}
-                              className="p-1 text-neutral-400 hover:text-white focus:outline-none"
+                              className="p-1 text-neutral-500 hover:text-[#FF9E15] focus:outline-none"
                               aria-label="Toggle categories"
                             >
                               <ChevronDown
@@ -303,7 +302,7 @@ export default function Navbar() {
                                 key={cat.id}
                                 href={`/products?category=${cat.slug || cat.id}`}
                                 onClick={closeMobileMenu}
-                                className="flex items-center gap-2 py-1 text-sm text-neutral-300 hover:text-[#FF9E15] transition-colors"
+                                className="flex items-center gap-2 py-1 text-sm text-neutral-600 hover:text-[#FF9E15] transition-colors"
                               >
                                 {cat.name}
                               </Link>
@@ -319,7 +318,7 @@ export default function Navbar() {
                       key={link.name}
                       href={link.href}
                       onClick={closeMobileMenu}
-                      className="text-white font-medium text-base py-2 transition-colors duration-200 hover:text-[#FF9E15] border-b border-white/10"
+                      className="text-neutral-900 font-medium text-base py-2 transition-colors duration-200 hover:text-[#FF9E15]"
                     >
                       {link.name}
                     </Link>
@@ -329,11 +328,11 @@ export default function Navbar() {
             </div>
 
             {/* Bottom Enquiry Button */}
-            <div className="pt-4 border-t border-white/10">
+            <div className="pt-4">
               <Link
                 href="/contact"
                 onClick={closeMobileMenu}
-                className="block w-full text-center bg-[#FF9E15] hover:bg-[#e0890f] text-white font-medium px-10 py-2.5 rounded-xs shadow-sm transition-all duration-200"
+                className="block w-full text-center bg-[#FF9E15] hover:bg-[#e0890f] text-white font-medium px-10 py-2.5 rounded-sm shadow-sm transition-all duration-200"
               >
                 Enquiry
               </Link>

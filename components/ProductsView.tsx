@@ -10,7 +10,8 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { CategoryItem, ProductItem } from "@/context/StoreContext";
+import { useStore, CategoryItem, ProductItem } from "@/context/StoreContext";
+import CatalogDownloadSection from "@/components/CatalogDownloadSection";
 
 interface ProductsViewProps {
   initialCategories: CategoryItem[];
@@ -25,31 +26,36 @@ function ProductsViewContent({
 }: ProductsViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { categories: storeCategories, products: storeProducts } = useStore();
+
+  // Use live store data if available, fallback to initial props
+  const categories = storeCategories && storeCategories.length > 0 ? storeCategories : initialCategories;
+  const allProducts = storeProducts && storeProducts.length > 0 ? storeProducts : initialProducts;
 
   // Active Category resolution (from URL or initial prop)
   const currentCategoryParam = searchParams?.get("category") || initialCategorySlug || "";
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Find the selected category object if any (default to first category if not specified)
+  // Find the selected category object if any (returns null if "all" or not specified, showing all products)
   const selectedCategory = useMemo(() => {
-    if (!initialCategories || initialCategories.length === 0) return null;
-    if (!currentCategoryParam) return initialCategories[0];
+    if (!categories || categories.length === 0) return null;
+    if (!currentCategoryParam || currentCategoryParam.toLowerCase() === "all") return null;
     const lowerParam = currentCategoryParam.toLowerCase().trim();
     return (
-      initialCategories.find(
+      categories.find(
         (c) =>
           c.slug.toLowerCase() === lowerParam ||
           c.id.toLowerCase() === lowerParam ||
           c.name.toLowerCase() === lowerParam
-      ) || initialCategories[0]
+      ) || null
     );
-  }, [currentCategoryParam, initialCategories]);
+  }, [currentCategoryParam, categories]);
 
   // Filter products by category and optional search query
   const filteredProducts = useMemo(() => {
-    let list = initialProducts;
+    let list = allProducts;
 
-    // Filter by category
+    // Filter by category only if a specific category is selected
     if (selectedCategory) {
       list = list.filter((p) => {
         const catIdMatch = p.category_id && p.category_id === selectedCategory.id;
@@ -77,19 +83,25 @@ function ProductsViewContent({
     }
 
     return list;
-  }, [initialProducts, selectedCategory, searchQuery]);
+  }, [allProducts, selectedCategory, searchQuery]);
 
   // Change category handler
   const handleCategorySelect = (slug?: string) => {
     setSearchQuery("");
-    if (slug) {
+    if (!slug || slug.toLowerCase() === "all") {
+      router.push("/products", { scroll: false });
+    } else {
       router.push(`/products?category=${encodeURIComponent(slug)}`, { scroll: false });
     }
   };
 
-  // Banner image: Use only database category image if available (no mock/fallback URLs)
-  const bannerImageUrl = selectedCategory?.image_url || undefined;
-  const bannerTitle = selectedCategory ? selectedCategory.name : "Products";
+  // Banner image: Use database category image if available, or fallback to first available category image
+  const defaultBannerImage = categories.find((c) => c.image_url)?.image_url;
+  const bannerImageUrl = selectedCategory ? (selectedCategory.image_url || defaultBannerImage) : defaultBannerImage;
+  const bannerTitle = selectedCategory ? selectedCategory.name : "All Products";
+
+  // Catalog URL: Selected category's catalog
+  const activeCatalogUrl = selectedCategory?.catalog_url;
 
   return (
     <div className="w-full min-h-screen bg-white text-neutral-900">
@@ -132,15 +144,43 @@ function ProductsViewContent({
 
       {/* 
         ========================================================================
+        REUSABLE CATALOGUE DOWNLOAD SECTION (Between Banner and Category Filter)
+        Only shown when a specific category is selected (hidden on All Products)
+        ========================================================================
+      */}
+      {selectedCategory && (
+        <CatalogDownloadSection
+          categoryName={selectedCategory.name}
+          catalogUrl={activeCatalogUrl || undefined}
+          variant="bar"
+          showEnquiryFallback={true}
+        />
+      )}
+
+      {/* 
+        ========================================================================
         2. CATEGORY SWITCHER PILLS & SEARCH BAR
         ========================================================================
       */}
       <section className="sticky top-16 z-30 bg-white/95 backdrop-blur-md border-b border-neutral-100 shadow-xs transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            {/* Horizontal Scrollable Category Tabs (Only Categories) */}
+            {/* Horizontal Scrollable Category Tabs */}
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-              {initialCategories.map((cat) => {
+              {/* All Products Tab */}
+              <button
+                type="button"
+                onClick={() => handleCategorySelect()}
+                className={`px-4 py-1.5 rounded-xs text-xs sm:text-sm font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                  !selectedCategory
+                    ? "bg-[#FF9E15] text-white shadow-xs"
+                    : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+                }`}
+              >
+                <span>All Products</span>
+              </button>
+
+              {categories.map((cat) => {
                 const isActive = selectedCategory?.id === cat.id;
                 return (
                   <button
@@ -204,6 +244,15 @@ function ProductsViewContent({
                 : "We are currently preparing items for this category. Please check other categories or contact our design team."}
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              {selectedCategory && (
+                <button
+                  type="button"
+                  onClick={() => handleCategorySelect()}
+                  className="px-5 py-2 text-xs sm:text-sm font-medium bg-neutral-900 hover:bg-neutral-800 text-white rounded-xs transition-colors shadow-xs cursor-pointer"
+                >
+                  View All Products
+                </button>
+              )}
               <Link
                 href="/contact"
                 className="px-5 py-2 text-xs sm:text-sm font-medium bg-[#FF9E15] hover:bg-[#FF9E15]/90 text-white rounded-xs transition-colors shadow-xs"

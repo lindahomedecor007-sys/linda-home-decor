@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS public.categories (
   name TEXT NOT NULL,
   slug TEXT NOT NULL UNIQUE,
   image_url TEXT,
+  catalog_url TEXT,
   display_order INT DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -267,3 +268,23 @@ CREATE POLICY "Allow public read access on services_section" ON public.services_
 
 CREATE POLICY "Allow all access on services_section" ON public.services_section
   FOR ALL USING (true) WITH CHECK (true);
+
+-- =========================================================================
+-- Supabase Storage Bucket for Large Catalogues / PDF Documents
+-- =========================================================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('catalogs', 'catalogs', true)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Allow public read access on catalogs bucket"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'catalogs');
+
+CREATE POLICY "Allow public upload on catalogs bucket"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'catalogs');
+
+CREATE POLICY "Allow public update and delete on catalogs bucket"
+ON storage.objects FOR ALL
+USING (bucket_id = 'catalogs');
+
