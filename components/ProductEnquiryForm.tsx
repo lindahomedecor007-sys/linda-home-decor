@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useStore, ProductItem } from "@/context/StoreContext";
 import { Loader2, Send, CheckCircle2, AlertCircle, MessageSquare } from "lucide-react";
@@ -10,7 +10,7 @@ interface ProductEnquiryFormProps {
   product: ProductItem;
 }
 
-export default function ProductEnquiryForm({ product }: ProductEnquiryFormProps) {
+function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
   const { addEnquiry } = useStore();
   const searchParams = useSearchParams();
   const formRef = useRef<HTMLDivElement>(null);
@@ -245,5 +245,13 @@ export default function ProductEnquiryForm({ product }: ProductEnquiryFormProps)
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function ProductEnquiryForm(props: ProductEnquiryFormProps) {
+  return (
+    <Suspense fallback={<div className="mt-8 pt-6 border-t border-neutral-200" />}>
+      <ProductEnquiryFormContent {...props} />
+    </Suspense>
   );
 }

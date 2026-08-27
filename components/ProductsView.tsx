@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,7 +18,7 @@ interface ProductsViewProps {
   initialCategorySlug?: string;
 }
 
-export default function ProductsView({
+function ProductsViewContent({
   initialCategories,
   initialProducts,
   initialCategorySlug,
@@ -301,3 +301,18 @@ export default function ProductsView({
     </div>
   );
 }
+
+export default function ProductsView(props: ProductsViewProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full min-h-screen bg-white pt-24 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[#FF9E15] border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <ProductsViewContent {...props} />
+    </Suspense>
+  );
+}
+

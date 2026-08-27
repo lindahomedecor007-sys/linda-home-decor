@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { CompanySettingsData } from "@/lib/companySettings";
@@ -29,7 +29,7 @@ interface ContactSectionProps {
   companySettings?: CompanySettingsData | null;
 }
 
-export default function ContactSection({
+function ContactSectionContent({
   title = "You Need More Help?",
   description = "One of our workspace experts will reach out to you based on your question.",
   className = "",
@@ -415,3 +415,12 @@ export default function ContactSection({
     </section>
   );
 }
+
+export default function ContactSection(props: ContactSectionProps) {
+  return (
+    <Suspense fallback={null}>
+      <ContactSectionContent {...props} />
+    </Suspense>
+  );
+}
+
