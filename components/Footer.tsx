@@ -10,7 +10,6 @@ import {
   Mail,
   MapPin,
   Clock,
-  ArrowRight,
   ChevronRight,
   ChevronDown,
 } from "lucide-react";
@@ -55,12 +54,11 @@ export default function Footer() {
   const whatsappHref = cleanNum ? `https://wa.me/${cleanNum}` : "#";
 
   return (
-    <footer className="w-full bg-[#18130B] text-white border-t border-[#FF9E15]/20 selection:bg-[#FF9E15] selection:text-white">
-      {/* Top Decorative Gold Accent Line */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+    <footer className="w-full bg-black text-white selection:bg-[#FF9E15] selection:text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-10 lg:gap-12">
-          {/* Column 1: Brand Info & Description (lg:col-span-4) */}
-          <div className="lg:col-span-4 space-y-2">
+          {/* Column 1: Brand Info, Description & Address/Contact Details (lg:col-span-4) */}
+          <div className="lg:col-span-4 space-y-4">
             <Link href="/" className="inline-flex items-end group">
               <Image
                 src="/logo/logo.png"
@@ -79,60 +77,62 @@ export default function Footer() {
                 "Transforming spaces with elegance and precision. Discover curated furniture, custom interiors, and premium decor solutions."}
             </p>
 
-            {/* Social Media Links with Authentic Brand Colors */}
-            <div className="space-y-3 pt-2">
-              <span className="block text-xs font-bold text-neutral-200 tracking-wider uppercase">
-                Connect With Us
-              </span>
-              <div className="flex items-center gap-3">
-                {/* WhatsApp */}
-                <a
-                  href={whatsappHref}
-                  target={whatsappHref !== "#" ? "_blank" : "_self"}
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 text-[#25D366] hover:bg-[#25D366] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-xs"
-                  aria-label="WhatsApp"
-                  title="WhatsApp"
-                >
-                  <WhatsappIcon className="w-4 h-4" />
-                </a>
+            {/* Address & Contact Details */}
+            <div className="space-y-3 pt-2 text-sm text-neutral-300">
+              {/* Address */}
+              {companySettings?.address && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-4 h-4 text-white shrink-0 mt-1" />
+                  <p className="leading-snug">
+                    {companySettings.address}
+                    {companySettings.city ? `, ${companySettings.city}` : ""}
+                    {companySettings.state ? `, ${companySettings.state}` : ""}
+                    {companySettings.postal_code ? ` - ${companySettings.postal_code}` : ""}
+                    {companySettings.country ? `, ${companySettings.country}` : ""}
+                  </p>
+                </div>
+              )}
 
-                {/* Instagram */}
-                <a
-                  href={companySettings?.instagram_url || "#"}
-                  target={companySettings?.instagram_url ? "_blank" : "_self"}
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 text-[#E4405F] hover:bg-[#E4405F] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-xs"
-                  aria-label="Instagram"
-                  title="Instagram"
-                >
-                  <InstagramIcon className="w-4 h-4" />
-                </a>
+              {/* Phone */}
+              {companySettings?.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="w-4 h-4 text-white shrink-0" />
+                  <a
+                    href={`tel:${companySettings.phone}`}
+                    className="hover:text-[#FF9E15] font-medium transition-colors"
+                  >
+                    {companySettings.phone}
+                    {companySettings.alternate_phone && (
+                      <span className="text-xs text-neutral-400 ml-2">
+                        / {companySettings.alternate_phone}
+                      </span>
+                    )}
+                  </a>
+                </div>
+              )}
 
-                {/* Facebook */}
-                <a
-                  href={companySettings?.facebook_url || "#"}
-                  target={companySettings?.facebook_url ? "_blank" : "_self"}
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 text-[#1877F2] hover:bg-[#1877F2] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-xs"
-                  aria-label="Facebook"
-                  title="Facebook"
-                >
-                  <FacebookIcon className="w-4 h-4" />
-                </a>
+              {/* Email */}
+              {companySettings?.email && (
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-white shrink-0" />
+                  <a
+                    href={`mailto:${companySettings.email}`}
+                    className="hover:text-[#FF9E15] transition-colors truncate"
+                  >
+                    {companySettings.email}
+                  </a>
+                </div>
+              )}
 
-                {/* YouTube */}
-                <a
-                  href={companySettings?.youtube_url || "#"}
-                  target={companySettings?.youtube_url ? "_blank" : "_self"}
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 text-[#FF0000] hover:bg-[#FF0000] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-xs"
-                  aria-label="YouTube"
-                  title="YouTube"
-                >
-                  <YoutubeIcon className="w-4 h-4" />
-                </a>
-              </div>
+              {/* Working Hours */}
+              {companySettings?.opening_hours && (
+                <div className="flex items-start gap-3">
+                  <Clock className="w-4 h-4 text-white shrink-0 mt-0.5" />
+                  <span className="text-xs text-neutral-300 leading-snug">
+                    {companySettings.opening_hours}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -249,66 +249,62 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 4: Contact & Address Information (lg:col-span-4) - NOT ACCORDION */}
+          {/* Column 4: Connect With Us & Social Media (lg:col-span-4) */}
           <div className="lg:col-span-4 space-y-4">
             <h4 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
-              Contact & Location
+              Connect With Us
             </h4>
-            <div className="space-y-3.5 text-sm text-neutral-300">
-              {/* Address */}
-              {companySettings?.address && (
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 text-[#FF9E15] shrink-0 mt-1" />
-                  <p className="leading-snug">
-                    {companySettings.address}
-                    {companySettings.city ? `, ${companySettings.city}` : ""}
-                    {companySettings.state ? `, ${companySettings.state}` : ""}
-                    {companySettings.postal_code ? ` - ${companySettings.postal_code}` : ""}
-                    {companySettings.country ? `, ${companySettings.country}` : ""}
-                  </p>
-                </div>
-              )}
+            <p className="text-sm text-neutral-300 leading-relaxed">
+              Follow our social channels for latest interior designs, collections, and workspace updates.
+            </p>
+            <div className="flex items-center gap-4 pt-1">
+              {/* WhatsApp */}
+              <a
+                href={whatsappHref}
+                target={whatsappHref !== "#" ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                className="text-white hover:text-[#FF9E15] transition-colors duration-200"
+                aria-label="WhatsApp"
+                title="WhatsApp"
+              >
+                <WhatsappIcon className="w-5 h-5" />
+              </a>
 
-              {/* Phone */}
-              {companySettings?.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-[#FF9E15] shrink-0" />
-                  <a
-                    href={`tel:${companySettings.phone}`}
-                    className="hover:text-[#FF9E15] font-medium transition-colors"
-                  >
-                    {companySettings.phone}
-                    {companySettings.alternate_phone && (
-                      <span className="text-xs text-neutral-400 ml-2">
-                        / {companySettings.alternate_phone}
-                      </span>
-                    )}
-                  </a>
-                </div>
-              )}
+              {/* Instagram */}
+              <a
+                href={companySettings?.instagram_url || "#"}
+                target={companySettings?.instagram_url ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                className="text-white hover:text-[#FF9E15] transition-colors duration-200"
+                aria-label="Instagram"
+                title="Instagram"
+              >
+                <InstagramIcon className="w-5 h-5" />
+              </a>
 
-              {/* Email */}
-              {companySettings?.email && (
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-[#FF9E15] shrink-0" />
-                  <a
-                    href={`mailto:${companySettings.email}`}
-                    className="hover:text-[#FF9E15] transition-colors truncate"
-                  >
-                    {companySettings.email}
-                  </a>
-                </div>
-              )}
+              {/* Facebook */}
+              <a
+                href={companySettings?.facebook_url || "#"}
+                target={companySettings?.facebook_url ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                className="text-white hover:text-[#FF9E15] transition-colors duration-200"
+                aria-label="Facebook"
+                title="Facebook"
+              >
+                <FacebookIcon className="w-5 h-5" />
+              </a>
 
-              {/* Working Hours */}
-              {companySettings?.opening_hours && (
-                <div className="flex items-start gap-3">
-                  <Clock className="w-4 h-4 text-[#FF9E15] shrink-0 mt-0.5" />
-                  <span className="text-xs text-neutral-300 leading-snug">
-                    {companySettings.opening_hours}
-                  </span>
-                </div>
-              )}
+              {/* YouTube */}
+              <a
+                href={companySettings?.youtube_url || "#"}
+                target={companySettings?.youtube_url ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                className="text-white hover:text-[#FF9E15] transition-colors duration-200"
+                aria-label="YouTube"
+                title="YouTube"
+              >
+                <YoutubeIcon className="w-5 h-5" />
+              </a>
             </div>
           </div>
         </div>
@@ -321,6 +317,17 @@ export default function Footer() {
               {companySettings?.company_name || "Linda Home Decor"}
             </span>
             . All rights reserved.
+          </p>
+          <p className="text-neutral-400 text-xs">
+            Crafted by{" "}
+            <a
+              href="https://ekodrix.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#FF9E15] hover:underline font-medium transition-colors"
+            >
+              Ekodrix
+            </a>
           </p>
           <div className="flex items-center gap-6">
             <Link href="/about" className="hover:text-[#FF9E15] transition-colors">

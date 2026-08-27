@@ -20,7 +20,7 @@ import AdminToast, { ToastMessage } from "@/components/AdminToast";
 export default function AdminWhoWeArePage() {
   const { whoWeAreData, whoWeAreLoading, saveWhoWeAre } = useStore();
 
-  const [formData, setFormData] = useState<WhoWeAreSectionData>(defaultWhoWeAreData);
+  const [formData, setFormData] = useState<WhoWeAreSectionData>(() => whoWeAreData || defaultWhoWeAreData);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadingStatIcon, setUploadingStatIcon] = useState(false);
@@ -36,7 +36,7 @@ export default function AdminWhoWeArePage() {
   const statIconInputRef = useRef<HTMLInputElement>(null);
   const itemIconInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync with context
+  // Sync with context if it updates
   useEffect(() => {
     if (whoWeAreData) {
       setFormData(whoWeAreData);
@@ -298,61 +298,51 @@ export default function AdminWhoWeArePage() {
     }
   };
 
-  if (whoWeAreLoading) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15]" />
-          <p className="text-sm font-medium text-neutral-500">Loading Who We Are Settings...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col md:flex-row text-neutral-900 md:h-screen md:overflow-hidden">
-      {/* Reusable Admin Sidebar */}
-      <AdminSidebar />
+    <>
+      {/* Reusable Top Header */}
+      <AdminHeader title="Who We Are Section Management" />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 md:h-screen overflow-hidden">
-        {/* Reusable Top Header */}
-        <AdminHeader title="Who We Are Section Management" />
+      {/* Reusable Top Center Toast */}
+      <AdminToast
+        message={statusMessage}
+        onClose={() => setStatusMessage(null)}
+        duration={3500}
+      />
 
-        {/* Reusable Top Center Toast */}
-        <AdminToast
-          message={statusMessage}
-          onClose={() => setStatusMessage(null)}
-          duration={3500}
-        />
+      {/* Hidden inputs for icon uploads */}
+      <input
+        ref={statIconInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleNewStatIconUpload}
+        className="hidden"
+      />
+      <input
+        ref={itemIconInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleItemIconUpload}
+        className="hidden"
+      />
 
-        {/* Hidden inputs for icon uploads */}
-        <input
-          ref={statIconInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleNewStatIconUpload}
-          className="hidden"
-        />
-        <input
-          ref={itemIconInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleItemIconUpload}
-          className="hidden"
-        />
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
-          <div className="max-w-5xl w-full mx-auto space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Section Image Card */}
-              <div className="bg-white rounded-sm border border-neutral-200 p-5 sm:p-6 shadow-xs space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-                  <h3 className="text-sm font-bold text-black">
-                    Section Image
-                  </h3>
-                </div>
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          {whoWeAreLoading && !whoWeAreData ? (
+            <div className="max-w-5xl w-full mx-auto bg-white rounded-sm border border-neutral-200 p-12 text-center space-y-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15] mx-auto" />
+              <p className="text-sm font-medium text-neutral-500">Loading Who We Are Settings...</p>
+            </div>
+          ) : (
+            <div className="max-w-5xl w-full mx-auto space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Section Image Card */}
+                <div className="bg-white rounded-sm border border-neutral-200 p-5 sm:p-6 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+                    <h3 className="text-sm font-bold text-black">
+                      Section Image
+                    </h3>
+                  </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
                   {/* Image Preview */}
@@ -780,8 +770,8 @@ export default function AdminWhoWeArePage() {
               </div>
             </form>
           </div>
+          )}
         </div>
-      </main>
-    </div>
+    </>
   );
 }

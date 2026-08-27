@@ -7,8 +7,10 @@ import { getAboutSection } from "@/lib/about";
 import { getStatisticsSection } from "@/lib/statistics";
 import { getWhoWeAreSection } from "@/lib/whoWeAre";
 import { getBrandsSection } from "@/lib/brands";
+import { getCompanySettings } from "@/lib/companySettings";
 import type { Metadata } from "next";
 import BrandsSection from "@/components/BrandsSection";
+import EnquirySection from "@/components/EnquirySection";
 
 export const revalidate = 60;
 
@@ -19,17 +21,19 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const [aboutRes, statsRes, whoRes, brandsRes] = await Promise.allSettled([
+  const [aboutRes, statsRes, whoRes, brandsRes, settingsRes] = await Promise.allSettled([
     getAboutSection(),
     getStatisticsSection(),
     getWhoWeAreSection(),
     getBrandsSection(),
+    getCompanySettings(),
   ]);
 
   const aboutData = aboutRes.status === "fulfilled" ? aboutRes.value : null;
   const statisticsData = statsRes.status === "fulfilled" ? statsRes.value : null;
   const whoWeAreData = whoRes.status === "fulfilled" ? whoRes.value : null;
   const brandsData = brandsRes.status === "fulfilled" ? brandsRes.value : null;
+  const companySettings = settingsRes.status === "fulfilled" ? settingsRes.value : null;
 
   return (
     <div className="w-full pt-16 min-h-screen bg-white">
@@ -39,6 +43,7 @@ export default async function AboutPage() {
       <MissionSection initialData={aboutData} />
       <BrandsSection data={brandsData} />
       <WhoWeAreSection data={whoWeAreData} />
+      <EnquirySection companySettings={companySettings} />
     </div>
   );
 }

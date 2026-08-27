@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { HeroSlide } from "@/lib/hero";
 import { useStore } from "@/context/StoreContext";
 
@@ -16,10 +16,17 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
   const { heroSlides } = useStore();
   
   // Resolve slides from props or context
-  const slides = propSlides || (propData ? [propData] : heroSlides);
+  const slides =
+    propSlides && propSlides.length > 0
+      ? propSlides
+      : propData
+      ? [propData]
+      : heroSlides && heroSlides.length > 0
+      ? heroSlides
+      : [];
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   const totalSlides = slides.length;
 
@@ -35,12 +42,32 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
     }
   }, [totalSlides]);
 
-  // Autoplay slider every 6 seconds
+  // Autoplay slider every 5 seconds
   useEffect(() => {
-    if (totalSlides <= 1 || isPaused) return;
-    const interval = setInterval(nextSlide, 6000);
+    if (totalSlides <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % totalSlides);
+    }, 5000);
     return () => clearInterval(interval);
-  }, [totalSlides, isPaused, nextSlide]);
+  }, [totalSlides]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        nextSlide();
+      } else {
+        prevSlide();
+      }
+    }
+    setTouchStartX(null);
+  };
 
   if (!slides || slides.length === 0) {
     return null;
@@ -54,9 +81,9 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
 
   return (
     <section
-      className="relative w-full h-[75dvh] min-h-[500px] md:h-[100dvh] md:min-h-[100dvh] flex flex-col justify-between overflow-hidden bg-neutral-900 text-white select-none group"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      className="relative w-full h-[90dvh] min-h-[620px] md:h-[100dvh] md:min-h-[100dvh] flex flex-col justify-between overflow-hidden bg-neutral-900 text-white select-none group"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Background Images with Ambient Gradient Overlays */}
       <div className="absolute inset-0 z-0">
@@ -105,27 +132,22 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
         })}
 
         {/* Top Dark Shade for Transparent Navbar Readability */}
-        <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-gradient-to-b from-black/75 via-black/35 to-transparent z-15 pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-gradient-to-b from-black/75 via-black/35 to-transparent z-[15] pointer-events-none" />
 
         {/* Soft Vignette & Readability Gradient Overlay */}
-        <div className="absolute inset-0 z-15 bg-gradient-to-t from-black/80 via-black/35 to-black/30 md:from-black/75 md:via-black/25 md:to-black/20 pointer-events-none" />
-      </div>
-
-      {/* Decorative Vertical Grid Lines Overlay */}
-      <div className="absolute inset-0 z-20 pointer-events-none hidden md:grid grid-cols-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="border-r border-white/10 h-full" />
-        <div className="border-r border-white/10 h-full" />
-        <div className="border-r border-white/10 h-full" />
-        <div className="h-full" />
+        <div className="absolute inset-0 z-[15] bg-gradient-to-t from-black/80 via-black/35 to-black/30 md:from-black/75 md:via-black/25 md:to-black/20 pointer-events-none" />
       </div>
 
       {/* Main Container */}
-      <div className="relative z-30 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-6 sm:pb-8 flex flex-col justify-end md:justify-between flex-1">
+      <div className="relative z-30 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-10 flex flex-col justify-end md:justify-between flex-1">
         {/* Top spacer (Desktop only) */}
         <div className="hidden md:block" />
 
         {/* Center-Left Content Group (Subheading + Title + CTA Button) */}
-        <div className="mt-auto mb-1 md:my-auto py-2 sm:py-4 md:py-8 max-w-2xl lg:max-w-3xl flex flex-col items-start">
+        <div
+          key={activeSlide.id || currentIndex}
+          className="mt-auto mb-1 md:my-auto py-2 sm:py-4 md:py-8 max-w-2xl lg:max-w-3xl flex flex-col items-start"
+        >
           {/* Subheading: Clean typography matching reference */}
           {activeSlide.subheading && (
             <p className="text-sm sm:text-base font-normal tracking-wide text-white/90 mb-2 sm:mb-4 drop-shadow-xs transition-all animate-fade-in">
@@ -155,31 +177,6 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
             </Link>
           )}
         </div>
-
-        {/* Bottom Horizontal Line (Desktop only) */}
-        <div className="hidden md:flex pt-4 border-t border-white/15 items-center justify-between">
-          <div />
-        </div>
-      </div>
-
-      {/* Floating Next & Previous Navigation Buttons (Hidden on mobile, visible on md and up) */}
-      <div className="hidden md:flex absolute bottom-6 sm:bottom-8 right-4 sm:right-8 lg:right-12 z-40 items-center gap-3">
-        <button
-          type="button"
-          onClick={prevSlide}
-          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-white text-white hover:text-neutral-900 backdrop-blur-md border border-white/30 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 shadow-xl cursor-pointer"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
-        <button
-          type="button"
-          onClick={nextSlide}
-          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-white text-white hover:text-neutral-900 backdrop-blur-md border border-white/30 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 shadow-xl cursor-pointer"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
       </div>
     </section>
   );

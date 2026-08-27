@@ -109,36 +109,20 @@ export default function AdminEnquiriesPage() {
     }
   };
 
-  if (enquiriesLoading) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15]" />
-          <p className="text-sm font-medium text-neutral-500">Loading Enquiries...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col md:flex-row text-neutral-900 md:h-screen md:overflow-hidden">
-      {/* Reusable Admin Sidebar */}
-      <AdminSidebar />
+    <>
+      {/* Reusable Top Header */}
+      <AdminHeader title="Enquiries Dashboard" />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 md:h-screen overflow-hidden">
-        {/* Reusable Top Header */}
-        <AdminHeader title="Enquiries Dashboard" />
+      {/* Reusable Top Center Toast */}
+      <AdminToast
+        message={statusMessage}
+        onClose={() => setStatusMessage(null)}
+        duration={3500}
+      />
 
-        {/* Reusable Top Center Toast */}
-        <AdminToast
-          message={statusMessage}
-          onClose={() => setStatusMessage(null)}
-          duration={3500}
-        />
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
           <div className="max-w-6xl w-full mx-auto space-y-6">
             {/* KPI Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -245,7 +229,12 @@ export default function AdminEnquiriesPage() {
             </div>
 
             {/* Enquiries List */}
-            {filteredEnquiries.length === 0 ? (
+            {enquiriesLoading && enquiries.length === 0 ? (
+              <div className="bg-white rounded-sm border border-neutral-200 p-12 text-center shadow-xs">
+                <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15] mx-auto mb-3" />
+                <p className="text-sm font-medium text-neutral-500">Loading Enquiries...</p>
+              </div>
+            ) : filteredEnquiries.length === 0 ? (
               <div className="bg-white rounded-sm border border-neutral-200 p-12 text-center shadow-xs">
                 <MessageSquare className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
                 <h3 className="text-sm font-bold text-neutral-800">No Enquiries Found</h3>
@@ -411,7 +400,6 @@ export default function AdminEnquiriesPage() {
             )}
           </div>
         </div>
-      </main>
 
       {/* Delete Enquiry Confirmation Modal */}
       {enquiryToDelete && (
@@ -508,6 +496,6 @@ export default function AdminEnquiriesPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

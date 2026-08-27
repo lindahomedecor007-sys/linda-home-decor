@@ -12,6 +12,10 @@ import {
   X,
   ImageIcon,
   Tag,
+  FileText,
+  Download,
+  ExternalLink,
+  FileCheck,
 } from "lucide-react";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminHeader from "@/components/AdminHeader";
@@ -22,6 +26,7 @@ interface CategoryFormData {
   name: string;
   slug: string;
   image_url: string;
+  catalog_url: string;
   display_order: number;
 }
 
@@ -29,6 +34,7 @@ const emptyCategoryForm: CategoryFormData = {
   name: "",
   slug: "",
   image_url: "",
+  catalog_url: "",
   display_order: 0,
 };
 
@@ -47,10 +53,12 @@ export default function AdminCategoriesPage() {
   const [formData, setFormData] = useState<CategoryFormData>(emptyCategoryForm);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCatalog, setUploadingCatalog] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryItem | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const catalogFileInputRef = useRef<HTMLInputElement>(null);
 
   // Open Create Modal
   const handleOpenCreate = () => {
@@ -70,22 +78,23 @@ export default function AdminCategoriesPage() {
       name: cat.name,
       slug: cat.slug,
       image_url: cat.image_url || "",
+      catalog_url: cat.catalog_url || "",
       display_order: cat.display_order ?? 0,
     });
     setIsModalOpen(true);
   };
 
   // Helper to delete from Cloudinary
-  const deleteFromCloudinary = async (url?: string) => {
+  const deleteFromCloudinary = async (url?: string, resource_type: "image" | "raw" = "image") => {
     if (!url || !url.includes("cloudinary.com")) return;
     try {
       await fetch("/api/upload", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, resource_type }),
       });
     } catch (err) {
-      console.error("Failed to delete image from Cloudinary:", err);
+      console.error("Failed to delete file from Cloudinary:", err);
     }
   };
 
@@ -110,6 +119,7 @@ export default function AdminCategoriesPage() {
     try {
       const data = new FormData();
       data.append("file", file);
+      data.append("folder", "linda-home-decor/categories");
 
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -126,6 +136,7 @@ export default function AdminCategoriesPage() {
       setStatusMessage({ type: "error", text: msg });
     } finally {
       setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -134,8 +145,71 @@ export default function AdminCategoriesPage() {
     if (!formData.image_url) return;
     const url = formData.image_url;
     setFormData((prev) => ({ ...prev, image_url: "" }));
-    await deleteFromCloudinary(url);
+    await deleteFromCloudinary(url, "image");
     setStatusMessage({ type: "success", text: "Category image removed successfully!" });
+  };
+
+  // Upload Catalog PDF
+  const handleCatalogUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check if it's a PDF file
+    const isPdf =
+      file.name.toLowerCase().endsWith(".pdf") ||
+      file.type.toLowerCase().includes("pdf") ||
+      file.type === "application/octet-stream";
+
+    if (!isPdf) {
+      setStatusMessage({ type: "error", text: "Please select a valid PDF file (.pdf)" });
+      if (catalogFileInputRef.current) catalogFileInputRef.current.value = "";
+      return;
+    }
+
+    const sizeInMB = file.size / (1024 * 1024);
+    if (sizeInMB > 50) {
+      setStatusMessage({
+        type: "error",
+        text: `The selected PDF is ${sizeInMB.toFixed(1)}MB. Maximum recommended size is 50MB. Please compress your PDF and try again.`,
+      });
+      if (catalogFileInputRef.current) catalogFileInputRef.current.value = "";
+      return;
+    }
+
+    setUploadingCatalog(true);
+    setStatusMessage(null);
+
+    try {
+      const data = new FormData();
+      data.append("file", file);
+      data.append("folder", "linda-home-decor/catalogs");
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: data,
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to upload PDF");
+
+      setFormData((prev) => ({ ...prev, catalog_url: json.url }));
+      setStatusMessage({ type: "success", text: "Category catalogue PDF uploaded successfully!" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to upload catalogue PDF";
+      setStatusMessage({ type: "error", text: msg });
+    } finally {
+      setUploadingCatalog(false);
+      if (catalogFileInputRef.current) catalogFileInputRef.current.value = "";
+    }
+  };
+
+  // Remove Catalog PDF
+  const handleRemoveCatalog = async () => {
+    if (!formData.catalog_url) return;
+    const url = formData.catalog_url;
+    setFormData((prev) => ({ ...prev, catalog_url: "" }));
+    await deleteFromCloudinary(url, "raw");
+    setStatusMessage({ type: "success", text: "Category catalogue removed successfully!" });
   };
 
   // Submit Category Form
@@ -155,6 +229,7 @@ export default function AdminCategoriesPage() {
           name: formData.name,
           slug: formData.slug,
           image_url: formData.image_url,
+          catalog_url: formData.catalog_url,
           display_order: formData.display_order,
         });
         setStatusMessage({ type: "success", text: "Category updated successfully!" });
@@ -163,6 +238,7 @@ export default function AdminCategoriesPage() {
           name: formData.name,
           slug: formData.slug,
           image_url: formData.image_url,
+          catalog_url: formData.catalog_url,
           display_order: formData.display_order,
         });
         setStatusMessage({ type: "success", text: "Category created successfully!" });
@@ -191,7 +267,10 @@ export default function AdminCategoriesPage() {
 
     try {
       if (cat.image_url) {
-        await deleteFromCloudinary(cat.image_url);
+        await deleteFromCloudinary(cat.image_url, "image");
+      }
+      if (cat.catalog_url) {
+        await deleteFromCloudinary(cat.catalog_url, "raw");
       }
       await deleteCategory(cat.id);
       setStatusMessage({ type: "success", text: `Category "${cat.name}" deleted successfully!` });
@@ -204,36 +283,20 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  if (categoriesLoading) {
-    return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15]" />
-          <p className="text-sm font-medium text-neutral-500">Loading Categories...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col md:flex-row text-neutral-900 md:h-screen md:overflow-hidden">
-      {/* Reusable Admin Sidebar */}
-      <AdminSidebar />
+    <>
+      {/* Reusable Top Header */}
+      <AdminHeader title="Categories Management" />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 md:h-screen overflow-hidden">
-        {/* Reusable Top Header */}
-        <AdminHeader title="Categories Management" />
+      {/* Reusable Top Center Toast */}
+      <AdminToast
+        message={statusMessage}
+        onClose={() => setStatusMessage(null)}
+        duration={3500}
+      />
 
-        {/* Reusable Top Center Toast */}
-        <AdminToast
-          message={statusMessage}
-          onClose={() => setStatusMessage(null)}
-          duration={3500}
-        />
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
           <div className="max-w-6xl w-full mx-auto space-y-6">
             {/* Header / Summary Card */}
             <div className="bg-white rounded-sm border border-neutral-200 p-5 sm:p-6 shadow-xs flex items-center justify-between">
@@ -243,7 +306,7 @@ export default function AdminCategoriesPage() {
                   Product Categories ({categories.length})
                 </h2>
                 <p className="text-xs text-neutral-500 mt-0.5 font-medium">
-                  Manage categories shown in the Product Category section and store navigation
+                  Manage categories, banner images, and downloadable PDF catalogues
                 </p>
               </div>
 
@@ -257,14 +320,19 @@ export default function AdminCategoriesPage() {
             </div>
 
             {/* Categories Grid / Cards List */}
-            {categories.length === 0 ? (
+            {categoriesLoading && categories.length === 0 ? (
+              <div className="bg-white rounded-sm border border-neutral-200 p-12 text-center space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin text-[#FF9E15] mx-auto" />
+                <p className="text-sm font-medium text-neutral-500">Loading Categories...</p>
+              </div>
+            ) : categories.length === 0 ? (
               <div className="bg-white rounded-sm border border-dashed border-neutral-300 p-12 text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-amber-50 text-[#FF9E15] flex items-center justify-center mx-auto">
                   <Tag className="w-6 h-6" />
                 </div>
                 <h3 className="text-sm font-bold text-black">No Categories Found</h3>
                 <p className="text-xs text-neutral-500 max-w-sm mx-auto font-medium">
-                  Create your first product category with a name and image to display on the storefront.
+                  Create your first product category with a name, image, and optional PDF catalogue.
                 </p>
                 <button
                   onClick={handleOpenCreate}
@@ -297,6 +365,22 @@ export default function AdminCategoriesPage() {
                         </div>
                       )}
 
+                      {/* Catalog PDF Badge Overlay */}
+                      {cat.catalog_url && (
+                        <div className="absolute bottom-2 left-2 z-10">
+                          <a
+                            href={cat.catalog_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-xs bg-neutral-900/85 hover:bg-neutral-900 text-white text-[10px] font-semibold backdrop-blur-xs shadow-sm transition-all"
+                            title="Download / View Catalogue PDF"
+                          >
+                            <FileText className="w-3 h-3 text-[#FF9E15]" />
+                            <span>PDF Catalogue</span>
+                          </a>
+                        </div>
+                      )}
+
                       {/* Top Action Overlay */}
                       <div className="absolute top-2 right-2 flex items-center gap-1">
                         <button
@@ -322,6 +406,17 @@ export default function AdminCategoriesPage() {
                         <h4 className="text-sm font-bold text-black truncate" title={cat.name}>
                           {cat.name}
                         </h4>
+                        <div className="flex items-center justify-between mt-1 text-[11px] text-neutral-500">
+                          <span className="truncate">Slug: {cat.slug}</span>
+                          {cat.catalog_url ? (
+                            <span className="text-emerald-600 font-semibold inline-flex items-center gap-0.5">
+                              <FileCheck className="w-3 h-3" />
+                              PDF ready
+                            </span>
+                          ) : (
+                            <span className="text-neutral-400">No PDF</span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="pt-2 border-t border-neutral-100 flex items-center justify-end text-[11px] text-neutral-500 font-medium">
@@ -339,7 +434,6 @@ export default function AdminCategoriesPage() {
             )}
           </div>
         </div>
-      </main>
 
       {/* Create / Edit Category Modal */}
       {isModalOpen && (
@@ -370,7 +464,7 @@ export default function AdminCategoriesPage() {
                   required
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="Enter Category"
+                  placeholder="Enter Category (e.g. Wallpaper, Wooden Flooring)"
                   className="w-full px-3.5 py-2.5 text-sm rounded-sm border border-neutral-300 bg-neutral-50/50 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
                 />
               </div>
@@ -378,7 +472,7 @@ export default function AdminCategoriesPage() {
               {/* Image Upload Option */}
               <div className="space-y-3 pt-2 border-t border-neutral-100">
                 <label className="block text-xs font-bold text-black uppercase tracking-wider">
-                  Category Image
+                  Category Banner Image
                 </label>
 
                 {/* Direct Image URL input */}
@@ -387,7 +481,7 @@ export default function AdminCategoriesPage() {
                     type="url"
                     value={formData.image_url}
                     onChange={(e) => setFormData((prev) => ({ ...prev, image_url: e.target.value }))}
-                    placeholder="https://..."
+                    placeholder="https://... (or upload file below)"
                     className="w-full px-3.5 py-2 text-xs rounded-sm border border-neutral-300 bg-neutral-50/50 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
                   />
                 </div>
@@ -423,7 +517,7 @@ export default function AdminCategoriesPage() {
 
                 {/* Image Preview with Remove Button */}
                 {formData.image_url ? (
-                  <div className="relative h-44 rounded-sm overflow-hidden border border-neutral-300 bg-neutral-100 group">
+                  <div className="relative h-40 rounded-sm overflow-hidden border border-neutral-300 bg-neutral-100 group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={formData.image_url}
@@ -441,9 +535,110 @@ export default function AdminCategoriesPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="h-28 rounded-sm border border-dashed border-neutral-200 bg-neutral-50 flex flex-col items-center justify-center text-neutral-400 gap-1">
+                  <div className="h-20 rounded-sm border border-dashed border-neutral-200 bg-neutral-50 flex flex-col items-center justify-center text-neutral-400 gap-1">
                     <ImageIcon className="w-5 h-5 text-neutral-300" />
                     <span className="text-[11px] font-medium">No image uploaded</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Catalogue PDF Upload Section */}
+              <div className="space-y-3 pt-3 border-t border-neutral-100">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-black uppercase tracking-wider">
+                    Category Catalogue (PDF)
+                  </label>
+                  <span className="text-[10px] text-neutral-500 font-semibold">Optional</span>
+                </div>
+
+                <p className="text-[11px] text-neutral-500 leading-relaxed">
+                  Upload a downloadable product catalogue or brochure (PDF format) for this category.
+                </p>
+
+                {/* Direct Catalog URL Input */}
+                <div>
+                  <input
+                    type="url"
+                    value={formData.catalog_url}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, catalog_url: e.target.value }))}
+                    placeholder="https://... (or upload PDF below)"
+                    className="w-full px-3.5 py-2 text-xs rounded-sm border border-neutral-300 bg-neutral-50/50 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
+                  />
+                </div>
+
+                {/* Hidden File Input for PDF */}
+                <input
+                  ref={catalogFileInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={handleCatalogUpload}
+                  className="hidden"
+                />
+
+                {/* Catalog PDF Card Preview OR Upload Button */}
+                {formData.catalog_url ? (
+                  <div className="space-y-2">
+                    <div className="p-3 rounded-sm border border-neutral-300 bg-neutral-50 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 rounded-sm bg-amber-100 text-[#FF9E15] flex items-center justify-center shrink-0">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-black truncate">
+                            {formData.name ? `${formData.name} Catalogue.pdf` : "Catalogue Document.pdf"}
+                          </p>
+                          <a
+                            href={formData.catalog_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-[#FF9E15] hover:underline font-semibold flex items-center gap-0.5 mt-0.5 truncate"
+                          >
+                            <span>Preview PDF</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => catalogFileInputRef.current?.click()}
+                          disabled={uploadingCatalog}
+                          className="px-2 py-1 text-[11px] font-semibold text-neutral-700 hover:text-black bg-white border border-neutral-300 hover:bg-neutral-50 rounded-xs transition-colors cursor-pointer"
+                        >
+                          {uploadingCatalog ? "Uploading..." : "Replace PDF"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRemoveCatalog}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded-xs transition-colors cursor-pointer"
+                          title="Remove catalogue PDF"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => catalogFileInputRef.current?.click()}
+                      disabled={uploadingCatalog}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-sm border-2 border-dashed border-neutral-300 hover:border-[#FF9E15] hover:bg-amber-50/30 text-xs font-bold text-black transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {uploadingCatalog ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-[#FF9E15]" />
+                          Uploading Catalogue PDF...
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4 text-[#FF9E15]" />
+                          Upload Catalogue PDF (.pdf)
+                        </>
+                      )}
+                    </button>
                   </div>
                 )}
               </div>
@@ -459,7 +654,7 @@ export default function AdminCategoriesPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploading || uploadingCatalog}
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-sm text-xs font-semibold text-white bg-[#FF9E15] hover:bg-[#e0890f] shadow-xs transition-all disabled:opacity-60 cursor-pointer"
                 >
                   {saving ? (
@@ -552,6 +747,6 @@ export default function AdminCategoriesPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
