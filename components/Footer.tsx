@@ -55,35 +55,35 @@ export default function Footer() {
 
   return (
     <footer className="w-full bg-black text-white selection:bg-[#FF9E15] selection:text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-10 lg:gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-9 sm:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 md:gap-8 lg:gap-10">
           {/* Column 1: Brand Info, Description & Address/Contact Details (lg:col-span-4) */}
-          <div className="lg:col-span-4 space-y-4">
+          <div className="lg:col-span-4 space-y-3">
             <Link href="/" className="inline-flex items-end group">
               <Image
                 src="/logo/logo.png"
                 alt="Linda Home Decor"
-                width={48}
-                height={48}
-                className="h-10 object-contain"
+                width={40}
+                height={40}
+                className="h-8 w-auto object-contain"
               />
-              <span className="text-base sm:text-lg font-bold tracking-widest text-white uppercase group-hover:text-[#FF9E15] transition-colors leading-tight">
+              <span className="text-sm sm:text-base font-bold tracking-widest text-white uppercase group-hover:text-[#FF9E15] transition-colors leading-tight ml-1">
                 LINDA HOME DECOR
               </span>
             </Link>
 
-            <p className="text-sm text-neutral-300 m-0 max-w-sm">
+            <p className="text-xs text-neutral-400 m-0 max-w-sm leading-relaxed">
               {companySettings?.tagline ||
                 "Transforming spaces with elegance and precision. Discover curated furniture, custom interiors, and premium decor solutions."}
             </p>
 
             {/* Address & Contact Details */}
-            <div className="space-y-3 pt-2 sm:pt-5 text-sm text-neutral-300">
+            <div className="space-y-2 pt-2 text-xs text-neutral-300">
               {/* Address */}
               {companySettings?.address && (
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 text-white shrink-0 mt-1" />
-                  <p className="leading-snug">
+                <div className="flex items-start gap-2.5">
+                  <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0 mt-0.5" />
+                  <p className="leading-snug text-neutral-300">
                     {companySettings.address}
                     {companySettings.city ? `, ${companySettings.city}` : ""}
                     {companySettings.state ? `, ${companySettings.state}` : ""}
@@ -95,15 +95,15 @@ export default function Footer() {
 
               {/* Phone */}
               {companySettings?.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-white shrink-0" />
+                <div className="flex items-center gap-2.5">
+                  <Phone className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                   <a
                     href={`tel:${companySettings.phone}`}
-                    className="hover:text-[#FF9E15] font-medium transition-colors"
+                    className="hover:text-[#FF9E15] font-medium transition-colors text-neutral-300"
                   >
                     {companySettings.phone}
                     {companySettings.alternate_phone && (
-                      <span className="text-xs text-neutral-400 ml-2">
+                      <span className="text-[11px] text-neutral-400 ml-1.5">
                         / {companySettings.alternate_phone}
                       </span>
                     )}
@@ -113,11 +113,11 @@ export default function Footer() {
 
               {/* Email */}
               {companySettings?.email && (
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-white shrink-0" />
+                <div className="flex items-center gap-2.5">
+                  <Mail className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                   <a
                     href={`mailto:${companySettings.email}`}
-                    className="hover:text-[#FF9E15] transition-colors truncate"
+                    className="hover:text-[#FF9E15] transition-colors truncate text-neutral-300"
                   >
                     {companySettings.email}
                   </a>
@@ -126,9 +126,9 @@ export default function Footer() {
 
               {/* Working Hours */}
               {companySettings?.opening_hours && (
-                <div className="flex items-start gap-3">
-                  <Clock className="w-4 h-4 text-white shrink-0 mt-0.5" />
-                  <span className="text-xs text-neutral-300 leading-snug">
+                <div className="flex items-start gap-2.5">
+                  <Clock className="w-3.5 h-3.5 text-neutral-400 shrink-0 mt-0.5" />
+                  <span className="text-[11px] text-neutral-400 leading-snug">
                     {companySettings.opening_hours}
                   </span>
                 </div>
@@ -137,9 +137,9 @@ export default function Footer() {
           </div>
 
           {/* Column 2: Quick Links / Pages (lg:col-span-2) - Accordion on mobile */}
-          <div className="lg:col-span-2 border-b border-white/10 md:border-b-0 pb-4 md:pb-0">
+          <div className="lg:col-span-2 border-b border-white/10 md:border-b-0 pb-3 md:pb-0">
             {/* Desktop Header */}
-            <h4 className="hidden md:block text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
+            <h4 className="hidden md:block text-xs font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2">
               Quick Links
             </h4>
 
@@ -147,12 +147,12 @@ export default function Footer() {
             <button
               type="button"
               onClick={() => toggleAccordion("quickLinks")}
-              className="flex md:hidden items-center justify-between w-full py-1 text-sm font-bold text-white uppercase tracking-wider text-left cursor-pointer select-none"
+              className="flex md:hidden items-center justify-between w-full py-1 text-xs font-bold text-white uppercase tracking-wider text-left cursor-pointer select-none"
               aria-expanded={Boolean(openAccordions["quickLinks"])}
             >
               <span>Quick Links</span>
               <ChevronDown
-                className={`w-4 h-4 text-[#FF9E15] transition-transform duration-200 ${
+                className={`w-3.5 h-3.5 text-[#FF9E15] transition-transform duration-200 ${
                   openAccordions["quickLinks"] ? "rotate-180" : ""
                 }`}
               />
@@ -161,17 +161,17 @@ export default function Footer() {
             {/* Content (Collapsible on mobile, always visible on md+) */}
             <div
               className={`transition-all duration-200 ease-in-out md:!block ${
-                openAccordions["quickLinks"] ? "block pt-3" : "hidden md:block md:pt-4"
+                openAccordions["quickLinks"] ? "block pt-2" : "hidden md:block md:pt-3"
               }`}
             >
-              <ul className="space-y-2.5 text-sm">
+              <ul className="space-y-2 text-xs">
                 {navLinks.map((link) => (
                   <li key={link.name}>
                     <Link
                       href={link.href}
                       className="text-neutral-300 hover:text-[#FF9E15] transition-colors flex items-center gap-1.5 group py-0.5"
                     >
-                      <ChevronRight className="w-3.5 h-3.5 text-[#FF9E15] opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
+                      <ChevronRight className="w-3 h-3 text-[#FF9E15] opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
                       <span>{link.name}</span>
                     </Link>
                   </li>
@@ -181,9 +181,9 @@ export default function Footer() {
           </div>
 
           {/* Column 3: Categories (lg:col-span-2) - Accordion on mobile */}
-          <div className="lg:col-span-2 border-b border-white/10 md:border-b-0 pb-4 md:pb-0">
+          <div className="lg:col-span-2 border-b border-white/10 md:border-b-0 pb-3 md:pb-0">
             {/* Desktop Header */}
-            <h4 className="hidden md:block text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
+            <h4 className="hidden md:block text-xs font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2">
               Collections
             </h4>
 
@@ -191,12 +191,12 @@ export default function Footer() {
             <button
               type="button"
               onClick={() => toggleAccordion("collections")}
-              className="flex md:hidden items-center justify-between w-full py-1 text-sm font-bold text-white uppercase tracking-wider text-left cursor-pointer select-none"
+              className="flex md:hidden items-center justify-between w-full py-1 text-xs font-bold text-white uppercase tracking-wider text-left cursor-pointer select-none"
               aria-expanded={Boolean(openAccordions["collections"])}
             >
               <span>Collections</span>
               <ChevronDown
-                className={`w-4 h-4 text-[#FF9E15] transition-transform duration-200 ${
+                className={`w-3.5 h-3.5 text-[#FF9E15] transition-transform duration-200 ${
                   openAccordions["collections"] ? "rotate-180" : ""
                 }`}
               />
@@ -205,10 +205,10 @@ export default function Footer() {
             {/* Content (Collapsible on mobile, always visible on md+) */}
             <div
               className={`transition-all duration-200 ease-in-out md:!block ${
-                openAccordions["collections"] ? "block pt-3" : "hidden md:block md:pt-4"
+                openAccordions["collections"] ? "block pt-2" : "hidden md:block md:pt-3"
               }`}
             >
-              <ul className="space-y-2.5 text-sm">
+              <ul className="space-y-2 text-xs">
                 {categories && categories.length > 0 ? (
                   categories.slice(0, 6).map((cat) => (
                     <li key={cat.id}>
@@ -216,7 +216,7 @@ export default function Footer() {
                         href={`/products?category=${encodeURIComponent(cat.slug || cat.name)}`}
                         className="text-neutral-300 hover:text-[#FF9E15] transition-colors flex items-center gap-1.5 group py-0.5"
                       >
-                        <ChevronRight className="w-3.5 h-3.5 text-[#FF9E15] opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
+                        <ChevronRight className="w-3 h-3 text-[#FF9E15] opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
                         <span className="truncate">{cat.name}</span>
                       </Link>
                     </li>
@@ -250,24 +250,24 @@ export default function Footer() {
           </div>
 
           {/* Column 4: Connect With Us & Social Media (lg:col-span-4) */}
-          <div className="lg:col-span-4 space-y-4">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2.5">
+          <div className="lg:col-span-4 space-y-3">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider border-b border-white/10 pb-2">
               Connect With Us
             </h4>
-            <p className="text-sm text-neutral-300 leading-relaxed">
+            <p className="text-xs text-neutral-400 leading-relaxed">
               Follow our social channels for latest interior designs, collections, and workspace updates.
             </p>
-            <div className="flex items-center gap-4 pt-1">
+            <div className="flex items-center gap-3.5 pt-0.5">
               {/* WhatsApp */}
               <a
                 href={whatsappHref}
                 target={whatsappHref !== "#" ? "_blank" : "_self"}
                 rel="noopener noreferrer"
-                className="text-white hover:text-[#FF9E15] transition-colors duration-200"
+                className="text-neutral-300 hover:text-[#FF9E15] transition-colors duration-200"
                 aria-label="WhatsApp"
                 title="WhatsApp"
               >
-                <WhatsappIcon className="w-5 h-5" />
+                <WhatsappIcon className="w-4.5 h-4.5" />
               </a>
 
               {/* Instagram */}
@@ -275,11 +275,11 @@ export default function Footer() {
                 href={companySettings?.instagram_url || "#"}
                 target={companySettings?.instagram_url ? "_blank" : "_self"}
                 rel="noopener noreferrer"
-                className="text-white hover:text-[#FF9E15] transition-colors duration-200"
+                className="text-neutral-300 hover:text-[#FF9E15] transition-colors duration-200"
                 aria-label="Instagram"
                 title="Instagram"
               >
-                <InstagramIcon className="w-5 h-5" />
+                <InstagramIcon className="w-4.5 h-4.5" />
               </a>
 
               {/* Facebook */}
@@ -287,11 +287,11 @@ export default function Footer() {
                 href={companySettings?.facebook_url || "#"}
                 target={companySettings?.facebook_url ? "_blank" : "_self"}
                 rel="noopener noreferrer"
-                className="text-white hover:text-[#FF9E15] transition-colors duration-200"
+                className="text-neutral-300 hover:text-[#FF9E15] transition-colors duration-200"
                 aria-label="Facebook"
                 title="Facebook"
               >
-                <FacebookIcon className="w-5 h-5" />
+                <FacebookIcon className="w-4.5 h-4.5" />
               </a>
 
               {/* YouTube */}
@@ -299,26 +299,26 @@ export default function Footer() {
                 href={companySettings?.youtube_url || "#"}
                 target={companySettings?.youtube_url ? "_blank" : "_self"}
                 rel="noopener noreferrer"
-                className="text-white hover:text-[#FF9E15] transition-colors duration-200"
+                className="text-neutral-300 hover:text-[#FF9E15] transition-colors duration-200"
                 aria-label="YouTube"
                 title="YouTube"
               >
-                <YoutubeIcon className="w-5 h-5" />
+                <YoutubeIcon className="w-4.5 h-4.5" />
               </a>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar: Copyright */}
-        <div className="mt-12 sm:mt-16 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-400">
+        <div className="mt-8 sm:mt-10 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-neutral-400">
           <p>
             © {currentYear}{" "}
-            <span className="text-white font-medium">
+            <span className="text-neutral-300 font-medium">
               {companySettings?.company_name || "Linda Home Decor"}
             </span>
             . All rights reserved.
           </p>
-          <p className="text-neutral-400 text-xs">
+          <p className="text-neutral-400 text-[11px]">
             Crafted by{" "}
             <a
               href="https://ekodrix.com"
@@ -329,7 +329,7 @@ export default function Footer() {
               Ekodrix
             </a>
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 text-[11px]">
             <Link href="/about" className="hover:text-[#FF9E15] transition-colors">
               Privacy Policy
             </Link>

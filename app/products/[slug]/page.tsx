@@ -9,6 +9,7 @@ import { getCategories } from "@/lib/categories";
 import RelatedProductsSection from "@/components/RelatedProductsSection";
 import ProductEnquiryForm from "@/components/ProductEnquiryForm";
 import ProductImageGallery from "@/components/ProductImageGallery";
+import EnquirySection from "@/components/EnquirySection";
 
 export const revalidate = 60;
 
@@ -132,6 +133,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
       {/* Related Products Section Component */}
       <RelatedProductsSection products={relatedProducts} />
+      <EnquirySection />
     </div>
   );
 }

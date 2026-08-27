@@ -181,7 +181,7 @@ export default function WhoWeAreSection({ data: propData }: WhoWeAreSectionProps
 
               {/* Description */}
               {description && (
-                <p className="text-neutral-500 text-sm sm:text-base font-normal leading-relaxed max-w-xl">
+                <p className="text-neutral-500 text-sm font-normal leading-relaxed max-w-xl">
                   {description}
                 </p>
               )}

@@ -105,6 +105,21 @@ export default function RelatedProductsSection({
                   )}
                 </div>
               )}
+
+              {/* Mobile Enquiry Button (Always visible on mobile screens, hidden on desktop) */}
+              <div className="mt-2.5 sm:hidden">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    router.push(`/products/${prod.slug || prod.id}?enquire=true#enquiry`);
+                  }}
+                  className="w-full py-1.5 px-2.5 bg-[#FF9E15] active:bg-[#e0890f] text-white text-center text-[11px] font-bold uppercase tracking-wider rounded-xs shadow-xs transition-colors block cursor-pointer"
+                >
+                  Enquire Now
+                </button>
+              </div>
             </div>
           </Link>
         ))}
