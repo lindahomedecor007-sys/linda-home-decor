@@ -78,7 +78,7 @@ export default function Footer() {
             </p>
 
             {/* Address & Contact Details */}
-            <div className="space-y-2 pt-2 text-xs text-neutral-300">
+            <div className="space-y-2 pt-8 text-xs text-neutral-300">
               {/* Address */}
               {companySettings?.address && (
                 <div className="flex items-start gap-2.5">
@@ -152,7 +152,7 @@ export default function Footer() {
             >
               <span>Quick Links</span>
               <ChevronDown
-                className={`w-3.5 h-3.5 text-[#FF9E15] transition-transform duration-200 ${
+                className={`w-3.5 h-3.5 text-white transition-transform duration-200 ${
                   openAccordions["quickLinks"] ? "rotate-180" : ""
                 }`}
               />
@@ -196,7 +196,7 @@ export default function Footer() {
             >
               <span>Collections</span>
               <ChevronDown
-                className={`w-3.5 h-3.5 text-[#FF9E15] transition-transform duration-200 ${
+                className={`w-3.5 h-3.5 text-white transition-transform duration-200 ${
                   openAccordions["collections"] ? "rotate-180" : ""
                 }`}
               />
@@ -310,7 +310,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar: Copyright */}
-        <div className="mt-8 sm:mt-10 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-neutral-400">
+        <div className="mt-8 sm:mt-10 pt-5 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 items-center gap-3 text-[11px] text-neutral-400 text-center sm:text-left">
           <p>
             © {currentYear}{" "}
             <span className="text-neutral-300 font-medium">
@@ -318,28 +318,18 @@ export default function Footer() {
             </span>
             . All rights reserved.
           </p>
-          <p className="text-neutral-400 text-[11px]">
+          <p className="text-white text-[11px] text-center">
             Crafted by{" "}
             <a
               href="https://ekodrix.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#FF9E15] hover:underline font-medium transition-colors"
+              className="text-white hover:underline font-medium transition-colors"
             >
               Ekodrix
             </a>
           </p>
-          <div className="flex items-center gap-4 text-[11px]">
-            <Link href="/about" className="hover:text-[#FF9E15] transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/contact" className="hover:text-[#FF9E15] transition-colors">
-              Terms & Conditions
-            </Link>
-            <Link href="/contact" className="hover:text-[#FF9E15] transition-colors">
-              Support
-            </Link>
-          </div>
+          <div className="hidden sm:block" />
         </div>
       </div>
     </footer>
