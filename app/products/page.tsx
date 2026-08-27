@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getCategories } from "@/lib/categories";
 import { getProducts } from "@/lib/products";
 import ProductsView from "@/components/ProductsView";
+import EnquirySection from "@/components/EnquirySection";
 
 export const revalidate = 60;
 
@@ -41,6 +42,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         initialProducts={products}
         initialCategorySlug={categoryParam}
       />
+      <EnquirySection/>
     </Suspense>
   );
 }
