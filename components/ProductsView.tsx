@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -35,6 +35,7 @@ function ProductsViewContent({
   // Active Category resolution (from URL or initial prop)
   const currentCategoryParam = searchParams?.get("category") || initialCategorySlug || "";
   const [searchQuery, setSearchQuery] = useState("");
+  const activeTabRef = useRef<HTMLButtonElement | null>(null);
 
   // Find the selected category object if any (returns null if "all" or not specified, showing all products)
   const selectedCategory = useMemo(() => {
@@ -50,6 +51,17 @@ function ProductsViewContent({
       ) || null
     );
   }, [currentCategoryParam, categories]);
+
+  // Auto-scroll the active category tab to front/center (especially on mobile)
+  useEffect(() => {
+    if (activeTabRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [selectedCategory]);
 
   // Filter products by category and optional search query
   const filteredProducts = useMemo(() => {
@@ -166,9 +178,10 @@ function ProductsViewContent({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             {/* Horizontal Scrollable Category Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scroll-smooth">
               {/* All Products Tab */}
               <button
+                ref={!selectedCategory ? activeTabRef : null}
                 type="button"
                 onClick={() => handleCategorySelect()}
                 className={`px-4 py-1.5 rounded-xs text-xs sm:text-sm font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
@@ -185,6 +198,7 @@ function ProductsViewContent({
                 return (
                   <button
                     key={cat.id}
+                    ref={isActive ? activeTabRef : null}
                     type="button"
                     onClick={() => handleCategorySelect(cat.slug || cat.id)}
                     className={`px-4 py-1.5 rounded-xs text-xs sm:text-sm font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
@@ -248,14 +262,14 @@ function ProductsViewContent({
                 <button
                   type="button"
                   onClick={() => handleCategorySelect()}
-                  className="px-5 py-2 text-xs sm:text-sm font-medium bg-neutral-900 hover:bg-neutral-800 text-white rounded-xs transition-colors shadow-xs cursor-pointer"
+                  className="w-44 sm:w-48 py-2.5 inline-flex items-center justify-center text-xs sm:text-sm font-medium bg-neutral-900 hover:bg-neutral-800 text-white rounded-xs transition-colors shadow-xs cursor-pointer text-center"
                 >
                   View All Products
                 </button>
               )}
               <Link
                 href="/contact"
-                className="px-5 py-2 text-xs sm:text-sm font-medium bg-[#FF9E15] hover:bg-[#FF9E15]/90 text-white rounded-xs transition-colors shadow-xs"
+                className="w-44 sm:w-48 py-2.5 inline-flex items-center justify-center text-xs sm:text-sm font-medium bg-[#FF9E15] hover:bg-[#FF9E15]/90 text-white rounded-xs transition-colors shadow-xs text-center"
               >
                 Contact Us
               </Link>
@@ -321,8 +335,6 @@ function ProductsViewContent({
                     {prod.name}
                   </h3>
 
-               
-
                   {/* Specifications Preview (Chips) */}
                   {prod.specifications && prod.specifications.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -341,6 +353,21 @@ function ProductsViewContent({
                       )}
                     </div>
                   )}
+
+                  {/* Mobile Enquiry Button (Always visible on mobile screens, hidden on desktop) */}
+                  <div className="mt-2.5 sm:hidden">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        router.push(`/products/${prod.slug || prod.id}?enquire=true#enquiry`);
+                      }}
+                      className="w-full py-1.5 px-2.5 bg-[#FF9E15] active:bg-[#e0890f] text-white text-center text-[11px] font-bold uppercase tracking-wider rounded-xs shadow-xs transition-colors block cursor-pointer"
+                    >
+                      Enquire Now
+                    </button>
+                  </div>
                 </div>
               </Link>
             ))}
