@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
 
+import AdminSidebar from "@/components/AdminSidebar";
+
 export default function AdminRootLayout({
   children,
 }: {
@@ -54,6 +56,18 @@ export default function AdminRootLayout({
     );
   }
 
-  // 3. Render page
-  return <>{children}</>;
+  // 3. Render login page directly without admin sidebar
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
+  // 4. Render persistent admin layout shell (sidebar persists across all page navigations)
+  return (
+    <div className="min-h-screen bg-neutral-100 flex flex-col md:flex-row text-neutral-900 md:h-screen md:overflow-hidden">
+      <AdminSidebar />
+      <div className="flex-1 flex flex-col min-w-0 md:h-screen overflow-hidden">
+        {children}
+      </div>
+    </div>
+  );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { getHeroSlides, saveHeroSection, deleteHeroSlide, HeroSlide } from "@/lib/hero";
 import { getFeaturedSection, saveFeaturedSection, FeaturedSectionData } from "@/lib/featured";
@@ -41,6 +41,7 @@ export interface CategoryItem {
   name: string;
   slug: string;
   image_url?: string;
+  catalog_url?: string;
   display_order?: number;
   created_at?: string;
   updated_at?: string;
@@ -108,8 +109,8 @@ interface StoreContextType {
   updateEnquiryStatus: (id: string, status: "pending" | "completed") => Promise<void>;
   deleteEnquiry: (id: string) => Promise<void>;
   refreshCategories: () => Promise<CategoryItem[]>;
-  createCategory: (data: { name: string; slug?: string; image_url?: string; display_order?: number }) => Promise<CategoryItem>;
-  updateCategory: (id: string, data: { name?: string; slug?: string; image_url?: string; display_order?: number }) => Promise<CategoryItem>;
+  createCategory: (data: { name: string; slug?: string; image_url?: string; catalog_url?: string; display_order?: number }) => Promise<CategoryItem>;
+  updateCategory: (id: string, data: { name?: string; slug?: string; image_url?: string; catalog_url?: string; display_order?: number }) => Promise<CategoryItem>;
   deleteCategory: (id: string) => Promise<void>;
   refreshProducts: () => Promise<ProductItem[]>;
   createProduct: (data: {
@@ -498,6 +499,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           name: String(c.name || c.title || c.category_name || `Category ${c.id}`),
           slug: String(c.slug || c.name || c.id).toLowerCase().replace(/\s+/g, "-"),
           image_url: c.image_url ? String(c.image_url) : undefined,
+          catalog_url: c.catalog_url ? String(c.catalog_url) : undefined,
           display_order: typeof c.display_order === "number" ? c.display_order : 0,
           created_at: c.created_at ? String(c.created_at) : undefined,
           updated_at: c.updated_at ? String(c.updated_at) : undefined,
@@ -517,12 +519,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Create Category
-  const createCategory = useCallback(async (catData: { name: string; slug?: string; image_url?: string; display_order?: number }) => {
+  const createCategory = useCallback(async (catData: { name: string; slug?: string; image_url?: string; catalog_url?: string; display_order?: number }) => {
     const slug = (catData.slug || catData.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     const payload = {
       name: catData.name.trim(),
       slug: slug || "category",
       image_url: catData.image_url || null,
+      catalog_url: catData.catalog_url || null,
       display_order: catData.display_order ?? 0,
     };
 
@@ -539,6 +542,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       name: data.name,
       slug: data.slug,
       image_url: data.image_url || undefined,
+      catalog_url: data.catalog_url || undefined,
       display_order: data.display_order,
       created_at: data.created_at,
       updated_at: data.updated_at,
@@ -549,7 +553,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Update Category
-  const updateCategory = useCallback(async (id: string, catData: { name?: string; slug?: string; image_url?: string; display_order?: number }) => {
+  const updateCategory = useCallback(async (id: string, catData: { name?: string; slug?: string; image_url?: string; catalog_url?: string; display_order?: number }) => {
     const payload: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
@@ -561,6 +565,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     if (catData.slug !== undefined) payload.slug = catData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     if (catData.image_url !== undefined) payload.image_url = catData.image_url || null;
+    if (catData.catalog_url !== undefined) payload.catalog_url = catData.catalog_url || null;
     if (catData.display_order !== undefined) payload.display_order = catData.display_order;
 
     const { data, error } = await supabase
@@ -577,6 +582,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       name: data.name,
       slug: data.slug,
       image_url: data.image_url || undefined,
+      catalog_url: data.catalog_url || undefined,
       display_order: data.display_order,
       created_at: data.created_at,
       updated_at: data.updated_at,
@@ -827,77 +833,138 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const pathname = usePathname();
   const isAdmin = Boolean(pathname?.startsWith("/admin"));
+  const adminLoadedRef = useRef(false);
 
-  // Only auto-fetch all tables on mount if user is in admin dashboard.
+  // Only auto-fetch all tables once on initial entry to admin dashboard.
   // Public pages fetch their section data via Next.js Server Components.
   useEffect(() => {
     if (isAdmin) {
-      refreshAll();
+      if (!adminLoadedRef.current) {
+        adminLoadedRef.current = true;
+        refreshAll();
+      }
     } else {
+      adminLoadedRef.current = false;
       // Lightly load global settings for navbar/footer
       refreshCompanySettings();
       refreshCategories();
     }
   }, [isAdmin, refreshAll, refreshCompanySettings, refreshCategories]);
 
+  const contextValue = useMemo(
+    () => ({
+      heroSlides,
+      heroData: heroSlides.length > 0 ? heroSlides[0] : null,
+      heroLoading,
+      featuredData,
+      featuredLoading,
+      brandsData,
+      brandsLoading,
+      statisticsData,
+      statisticsLoading,
+      whoWeAreData,
+      whoWeAreLoading,
+      companySettings,
+      companySettingsLoading,
+      aboutData,
+      aboutLoading,
+      servicesData,
+      servicesLoading,
+      enquiries,
+      enquiriesLoading,
+      categories,
+      categoriesLoading,
+      products,
+      productsLoading,
+      refreshHero,
+      saveHero,
+      deleteHero,
+      refreshFeatured,
+      saveFeatured,
+      refreshBrands,
+      saveBrands,
+      refreshStatistics,
+      saveStatistics,
+      refreshWhoWeAre,
+      saveWhoWeAre,
+      refreshCompanySettings,
+      saveCompanySettings,
+      refreshAbout,
+      saveAbout,
+      refreshServices,
+      saveServices,
+      refreshEnquiries,
+      addEnquiry,
+      updateEnquiryStatus,
+      deleteEnquiry,
+      refreshCategories,
+      createCategory,
+      updateCategory,
+      deleteCategory,
+      refreshProducts,
+      createProduct,
+      updateProduct,
+      deleteProduct,
+      refreshAll,
+    }),
+    [
+      heroSlides,
+      heroLoading,
+      featuredData,
+      featuredLoading,
+      brandsData,
+      brandsLoading,
+      statisticsData,
+      statisticsLoading,
+      whoWeAreData,
+      whoWeAreLoading,
+      companySettings,
+      companySettingsLoading,
+      aboutData,
+      aboutLoading,
+      servicesData,
+      servicesLoading,
+      enquiries,
+      enquiriesLoading,
+      categories,
+      categoriesLoading,
+      products,
+      productsLoading,
+      refreshHero,
+      saveHero,
+      deleteHero,
+      refreshFeatured,
+      saveFeatured,
+      refreshBrands,
+      saveBrands,
+      refreshStatistics,
+      saveStatistics,
+      refreshWhoWeAre,
+      saveWhoWeAre,
+      refreshCompanySettings,
+      saveCompanySettings,
+      refreshAbout,
+      saveAbout,
+      refreshServices,
+      saveServices,
+      refreshEnquiries,
+      addEnquiry,
+      updateEnquiryStatus,
+      deleteEnquiry,
+      refreshCategories,
+      createCategory,
+      updateCategory,
+      deleteCategory,
+      refreshProducts,
+      createProduct,
+      updateProduct,
+      deleteProduct,
+      refreshAll,
+    ]
+  );
+
   return (
-    <StoreContext.Provider
-      value={{
-        heroSlides,
-        heroData: heroSlides.length > 0 ? heroSlides[0] : null,
-        heroLoading,
-        featuredData,
-        featuredLoading,
-        brandsData,
-        brandsLoading,
-        statisticsData,
-        statisticsLoading,
-        whoWeAreData,
-        whoWeAreLoading,
-        companySettings,
-        companySettingsLoading,
-        aboutData,
-        aboutLoading,
-        servicesData,
-        servicesLoading,
-        enquiries,
-        enquiriesLoading,
-        categories,
-        categoriesLoading,
-        products,
-        productsLoading,
-        refreshHero,
-        saveHero,
-        deleteHero,
-        refreshFeatured,
-        saveFeatured,
-        refreshBrands,
-        saveBrands,
-        refreshStatistics,
-        saveStatistics,
-        refreshWhoWeAre,
-        saveWhoWeAre,
-        refreshCompanySettings,
-        saveCompanySettings,
-        refreshAbout,
-        saveAbout,
-        refreshServices,
-        saveServices,
-        refreshEnquiries,
-        addEnquiry,
-        updateEnquiryStatus,
-        deleteEnquiry,
-        refreshCategories,
-        createCategory,
-        updateCategory,
-        deleteCategory,
-        refreshProducts,
-        createProduct,
-        updateProduct,
-        deleteProduct,
-        refreshAll,
-      }}
-    >
+    <StoreContext.Provider value={contextValue}>
       {children}
     </StoreContext.Provider>
   );

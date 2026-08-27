@@ -14,7 +14,7 @@ import FeaturedSection from "@/components/FeaturedSection";
 import CategorySection from "@/components/CategorySection";
 import ProductCarouselSection from "@/components/ProductCarouselSection";
 import BrandsSection from "@/components/BrandsSection";
-import ContactSection from "@/components/ContactSection";
+import EnquirySection from "@/components/EnquirySection";
 
 // Cache rendered page for 60 seconds (Incremental Static Regeneration)
 export const revalidate = 60;
@@ -59,9 +59,7 @@ export default async function Home() {
       <ProductCarouselSection products={products} />
       <BrandsSection data={brandsData} />
       <WhoWeAreSection data={whoWeAreData} />
-      <Suspense fallback={null}>
-        <ContactSection companySettings={companySettings} />
-      </Suspense>
+      <EnquirySection companySettings={companySettings} />
     </main>
   );
 }
