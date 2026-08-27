@@ -78,7 +78,7 @@ export default function Footer() {
             </p>
 
             {/* Address & Contact Details */}
-            <div className="space-y-3 pt-2 text-sm text-neutral-300">
+            <div className="space-y-3 pt-2 sm:pt-5 text-sm text-neutral-300">
               {/* Address */}
               {companySettings?.address && (
                 <div className="flex items-start gap-3">

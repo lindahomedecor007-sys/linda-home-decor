@@ -162,7 +162,7 @@ function ProductsViewContent({
         2. CATEGORY SWITCHER PILLS & SEARCH BAR
         ========================================================================
       */}
-      <section className="sticky top-16 z-30 bg-white/95 backdrop-blur-md border-b border-neutral-100 shadow-xs transition-all">
+      <section className="sticky top-0 md:top-16 z-30 bg-white/95 backdrop-blur-md border-b border-neutral-100 shadow-xs transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             {/* Horizontal Scrollable Category Tabs */}

@@ -21,17 +21,37 @@ export default function Navbar() {
   const { categories } = useStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileNavVisible, setIsMobileNavVisible] = useState(true);
   const [isProductsHovered, setIsProductsHovered] = useState(false);
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
+      const currentScrollY = window.scrollY;
+
+      // Solid background state
+      if (currentScrollY > 20) {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
       }
+
+      // Mobile smart hide on scroll down / reveal on scroll up
+      if (currentScrollY <= 20) {
+        setIsMobileNavVisible(true);
+      } else {
+        if (currentScrollY > lastScrollYRef.current + 5) {
+          // Scrolling down -> hide on mobile
+          setIsMobileNavVisible(false);
+        } else if (currentScrollY < lastScrollYRef.current - 5) {
+          // Scrolling up (scroll back) -> show on mobile
+          setIsMobileNavVisible(true);
+        }
+      }
+
+      lastScrollYRef.current = currentScrollY;
     };
 
     handleScroll();
@@ -70,7 +90,9 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 w-full transition-transform duration-300 ease-in-out md:translate-y-0 ${
+        isMobileNavVisible || isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"
+      } ${
         isSolidNav
           ? "bg-white shadow-md"
           : "bg-white shadow-xs md:bg-transparent md:shadow-none"
