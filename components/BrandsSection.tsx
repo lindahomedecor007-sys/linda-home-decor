@@ -32,7 +32,7 @@ export default function BrandsSection({ data: propData }: BrandsSectionProps) {
         {/* Centered Subtitle & Main Heading matching reference image */}
         <div className="text-center space-y-1">
           {subTitle && (
-            <p className="text-xs sm:text-sm font-medium text-neutral-500 tracking-normal">
+            <p className="text-xs sm:text-sm font-medium text-neutral-500 tracking-normal ">
               {subTitle}
             </p>
           )}
