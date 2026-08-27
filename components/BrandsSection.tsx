@@ -30,7 +30,7 @@ export default function BrandsSection({ data: propData }: BrandsSectionProps) {
     <section className="w-full py-16 sm:py-20 md:pt-12 md:pb-12 bg-white text-neutral-900 select-none">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Centered Subtitle & Main Heading matching reference image */}
-        <div className="text-center mb-10 sm:mb-14 space-y-1">
+        <div className="text-center space-y-1">
           {subTitle && (
             <p className="text-xs sm:text-sm font-medium text-neutral-500 tracking-normal">
               {subTitle}

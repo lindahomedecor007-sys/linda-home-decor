@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getHeroSlides } from "@/lib/hero";
 import { getFeaturedSection } from "@/lib/featured";
 import { getBrandsSection } from "@/lib/brands";
@@ -58,7 +59,9 @@ export default async function Home() {
       <ProductCarouselSection products={products} />
       <BrandsSection data={brandsData} />
       <WhoWeAreSection data={whoWeAreData} />
-      <ContactSection companySettings={companySettings} />
+      <Suspense fallback={null}>
+        <ContactSection companySettings={companySettings} />
+      </Suspense>
     </main>
   );
 }
