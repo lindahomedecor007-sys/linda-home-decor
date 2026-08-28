@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { HeroSlide } from "@/lib/hero";
 import { useStore } from "@/context/StoreContext";
 
@@ -178,6 +178,29 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
           )}
         </div>
       </div>
+
+      {/* Previous & Next Slide Navigation Buttons (Desktop only, visible only when hovering over the button itself) */}
+      {totalSlides > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={prevSlide}
+            aria-label="Previous slide"
+            className="hidden md:flex absolute left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/45 hover:bg-[#FF9E15] text-white border border-white/25 backdrop-blur-sm items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 cursor-pointer"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+
+          <button
+            type="button"
+            onClick={nextSlide}
+            aria-label="Next slide"
+            className="hidden md:flex absolute right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/45 hover:bg-[#FF9E15] text-white border border-white/25 backdrop-blur-sm items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 cursor-pointer"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </>
+      )}
     </section>
   );
 }
