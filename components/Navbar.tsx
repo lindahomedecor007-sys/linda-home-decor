@@ -16,11 +16,12 @@ const navLinks = [
   { name: "Contact", href: "/contact" },
 ];
 
-
+// Pages where the navbar starts transparent and turns solid on scroll (desktop only)
+const transparentNavPages = ["/"];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isHomePage = pathname === "/";
+  const isHomePage = transparentNavPages.includes(pathname ?? "");
   const { categories } = useStore();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -77,10 +78,10 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-in-out ${
-          isScrolled || !isHomePage
-            ? "bg-white shadow-md"
-            : "bg-transparent shadow-none"
+        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-in-out bg-white shadow-md ${
+          isHomePage && !isScrolled
+            ? "md:bg-transparent md:shadow-none"
+            : "md:bg-white md:shadow-md"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -201,9 +202,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className={`p-2 focus:outline-none transition-colors ${
-                  isScrolled || !isHomePage ? "text-neutral-900" : "text-white"
-                }`}
+                className={`p-2 focus:outline-none transition-colors text-neutral-900`}
                 aria-label="Open mobile menu"
               >
                 <Menu className="w-6 h-6" />
