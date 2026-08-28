@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -16,9 +16,7 @@ const navLinks = [
   { name: "Contact", href: "/contact" },
 ];
 
-// Fires synchronously before browser paint on client; falls back to useEffect on server
-const useIsomorphicLayoutEffect =
-  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -31,13 +29,19 @@ export default function Navbar() {
 
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // useLayoutEffect fires synchronously before paint — reads real scrollY before anything
-  // is visible, so there is never a white-flash on transparent pages.
-  useIsomorphicLayoutEffect(() => {
+  // Fix: browser scroll restoration fires a scroll event AFTER the listener
+  // registers, making the navbar go white on open. Disabling scroll restoration
+  // ensures the page always starts at Y=0 and the navbar stays transparent.
+  useEffect(() => {
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
+    // Read current scroll position once (after disabling restoration)
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
