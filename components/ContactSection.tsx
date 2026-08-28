@@ -316,7 +316,7 @@ function ContactSectionContent({
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter your full name"
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border border-neutral-300 bg-white text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border-none bg-neutral-100 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] transition-all"
                   />
                 </div>
 
@@ -336,7 +336,7 @@ function ContactSectionContent({
                     value={formData.mobile_number}
                     onChange={handleChange}
                     placeholder="Enter your mobile number"
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border border-neutral-300 bg-white text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border-none bg-neutral-100 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] transition-all"
                   />
                 </div>
 
@@ -355,7 +355,7 @@ function ContactSectionContent({
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter your email address"
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border border-neutral-300 bg-white text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border-none bg-neutral-100 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] transition-all"
                   />
                 </div>
 
@@ -374,7 +374,7 @@ function ContactSectionContent({
                     value={formData.note}
                     onChange={handleChange}
                     placeholder="Write your message here..."
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border border-neutral-300 bg-white text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all resize-none"
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border-none bg-neutral-100 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] transition-all resize-none"
                   />
                 </div>
 

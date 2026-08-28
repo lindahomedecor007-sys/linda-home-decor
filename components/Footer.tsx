@@ -309,8 +309,8 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright */}
-        <div className="mt-8 sm:mt-10 pt-5 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 items-center gap-3 text-[11px] text-neutral-400 text-center sm:text-left">
+        {/* Bottom Bar: Copyright & Credit Centered */}
+        <div className="mt-8 sm:mt-10 pt-5 border-t border-white/10 flex flex-col items-center justify-center gap-1.5 text-[11px] text-neutral-400 text-center">
           <p>
             © {currentYear}{" "}
             <span className="text-neutral-300 font-medium">
@@ -318,18 +318,17 @@ export default function Footer() {
             </span>
             . All rights reserved.
           </p>
-          <p className="text-white text-[11px] text-center">
+          <p className="text-neutral-400 text-[11px]">
             Crafted by{" "}
             <a
               href="https://ekodrix.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white hover:underline font-medium transition-colors"
+              className="text-neutral-300 hover:text-white hover:underline font-medium transition-colors"
             >
               Ekodrix
             </a>
           </p>
-          <div className="hidden sm:block" />
         </div>
       </div>
     </footer>

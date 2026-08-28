@@ -4,13 +4,14 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useStore, ProductItem } from "@/context/StoreContext";
 import { Loader2, Send, CheckCircle2, AlertCircle, MessageSquare } from "lucide-react";
+import { WhatsappIcon } from "@/components/SocialIcons";
 
 interface ProductEnquiryFormProps {
   product: ProductItem;
 }
 
 function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
-  const { addEnquiry } = useStore();
+  const { addEnquiry, companySettings } = useStore();
   const searchParams = useSearchParams();
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -131,7 +132,7 @@ function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Enter your name"
-                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-sm border border-neutral-300 bg-white text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border-none bg-neutral-100 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] transition-all"
               />
             </div>
 
@@ -147,7 +148,7 @@ function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
                 value={formData.mobile_number}
                 onChange={handleChange}
                 placeholder="Enter your mobile number"
-                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-sm border border-neutral-300 bg-white text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border-none bg-neutral-100 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] transition-all"
               />
             </div>
           </div>
@@ -163,7 +164,7 @@ function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter your email address"
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-sm border border-neutral-300 bg-white text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all"
+              className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border-none bg-neutral-100 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] transition-all"
             />
           </div>
 
@@ -178,12 +179,44 @@ function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
               value={formData.note}
               onChange={handleChange}
               placeholder="Any specific questions, dimensions or custom requirements..."
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-sm border border-neutral-300 bg-white text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] focus:border-transparent transition-all resize-none"
+              className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-sm border-none bg-neutral-100 text-black font-medium placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF9E15] transition-all resize-none"
             />
           </div>
 
-          {/* Submit Button */}
-          <div className="pt-1 flex items-center justify-end">
+          {/* Action Buttons: Submit Form & Direct WhatsApp */}
+          <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5">
+            {(() => {
+              const rawWhatsapp =
+                companySettings?.whatsapp_number ||
+                companySettings?.phone ||
+                companySettings?.alternate_phone ||
+                "";
+              let cleanWhatsapp = rawWhatsapp.replace(/[^0-9]/g, "");
+              if (cleanWhatsapp && !cleanWhatsapp.startsWith("91") && cleanWhatsapp.length === 10) {
+                cleanWhatsapp = "91" + cleanWhatsapp;
+              }
+              const whatsappMessage = encodeURIComponent(
+                `Hello! I am interested in ${product.name}${
+                  product.category_name ? ` (${product.category_name})` : ""
+                } from Linda Home Decor. Could you please share more details and pricing?`
+              );
+              const whatsappHref = cleanWhatsapp
+                ? `https://wa.me/${cleanWhatsapp}?text=${whatsappMessage}`
+                : `https://wa.me/?text=${whatsappMessage}`;
+
+              return (
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm text-xs sm:text-sm font-semibold text-white bg-[#25D366] hover:bg-[#20ba59] shadow-xs transition-all cursor-pointer"
+                >
+                  <WhatsappIcon className="w-4 h-4 fill-current" />
+                  <span>WhatsApp Enquiry</span>
+                </a>
+              );
+            })()}
+
             <button
               type="submit"
               disabled={submitting || success}
