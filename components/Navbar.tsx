@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -16,11 +16,14 @@ const navLinks = [
   { name: "Contact", href: "/contact" },
 ];
 
+// Fires synchronously before browser paint on client; falls back to useEffect on server
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export default function Navbar() {
   const pathname = usePathname();
   const { categories } = useStore();
 
-  const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
@@ -28,15 +31,13 @@ export default function Navbar() {
 
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Track scroll position to switch between transparent and white background
-  useEffect(() => {
-    setMounted(true);
-
+  // useLayoutEffect fires synchronously before paint — reads real scrollY before anything
+  // is visible, so there is never a white-flash on transparent pages.
+  useIsomorphicLayoutEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
-    // Read the actual scroll position immediately after mount
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -68,8 +69,7 @@ export default function Navbar() {
 
   // Navbar is transparent ONLY on the home page when not scrolled.
   // On all other pages or when scrolled, it is white.
-  // Before mount (SSR/hydration), default to transparent on home page to avoid white flash.
-  const isTransparent = isHomePage && (!mounted || !isScrolled);
+  const isTransparent = isHomePage && !isScrolled;
 
   const handleProductsMouseEnter = () => {
     if (dropdownTimeoutRef.current) {
