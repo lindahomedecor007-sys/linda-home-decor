@@ -157,7 +157,7 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
         >
           {/* Subheading: Clean typography matching reference */}
           {activeSlide.subheading && (
-            <p className="text-sm sm:text-base font-normal tracking-wide text-white/90 mb-2 sm:mb-4 drop-shadow-xs transition-all animate-fade-in">
+            <p className="text-sm sm:text-base font-bold tracking-wide text-white/90 mb-2 sm:mb-4 drop-shadow-xs transition-all animate-fade-in">
               {activeSlide.subheading}
             </p>
           )}

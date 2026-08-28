@@ -27,16 +27,13 @@ export default function Navbar() {
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastScrollYRef = useRef(0);
 
+  // --- Scroll tracking (solid bg + mobile hide/reveal) ---
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
       // Solid background state
-      if (currentScrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(currentScrollY > 20);
 
       // Mobile smart hide on scroll down / reveal on scroll up
       if (currentScrollY <= 20) {
@@ -59,6 +56,23 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // --- Lock body scroll when mobile menu is open ---
+  // NOTE: this hook MUST stay above the `if (pathname?.startsWith("/admin"))`
+  // early return below. Hooks can never be called conditionally / after an
+  // early return, or React loses track of hook order between renders and
+  // component state (like isScrolled) starts behaving unpredictably.
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
+  // All hooks are declared above this line — safe to return conditionally now.
   if (pathname?.startsWith("/admin")) {
     return null;
   }
@@ -92,18 +106,6 @@ export default function Navbar() {
     pathname.startsWith("/#") ||
     pathname.startsWith("/?");
   const isSolidNav = !isHomePage || isScrolled;
-
-  // Lock body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isMobileMenuOpen]);
 
   return (
     <>
