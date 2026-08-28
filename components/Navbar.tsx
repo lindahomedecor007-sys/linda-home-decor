@@ -85,7 +85,12 @@ export default function Navbar() {
     }, 150);
   };
 
-  const isHomePage = !pathname || pathname === "/" || pathname === "";
+  const isHomePage =
+    !pathname ||
+    pathname === "/" ||
+    pathname === "" ||
+    pathname.startsWith("/#") ||
+    pathname.startsWith("/?");
   const isSolidNav = !isHomePage || isScrolled;
 
   // Lock body scroll when mobile menu is open

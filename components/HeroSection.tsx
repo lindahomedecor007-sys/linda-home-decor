@@ -15,8 +15,8 @@ interface HeroSectionProps {
 export default function HeroSection({ slides: propSlides, data: propData }: HeroSectionProps) {
   const { heroSlides } = useStore();
   
-  // Resolve slides from props or context
-  const slides =
+  // Resolve slides from props, context, or fallback
+  const rawSlides =
     propSlides && propSlides.length > 0
       ? propSlides
       : propData
@@ -24,6 +24,21 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
       : heroSlides && heroSlides.length > 0
       ? heroSlides
       : [];
+
+  const slides: HeroSlide[] =
+    rawSlides.length > 0
+      ? rawSlides
+      : [
+          {
+            id: "fallback-hero-1",
+            subheading: "Luxury Interior & Home Decor",
+            title: "Timeless Elegance For Modern Living",
+            image_url:
+              "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop",
+            button_text: "Explore Products",
+            button_link: "/products",
+          },
+        ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -69,15 +84,7 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
     setTouchStartX(null);
   };
 
-  if (!slides || slides.length === 0) {
-    return null;
-  }
-
   const activeSlide = slides[currentIndex] || slides[0];
-
-  if (!activeSlide || (!activeSlide.title && !activeSlide.image_url && !activeSlide.subheading)) {
-    return null;
-  }
 
   return (
     <section
@@ -157,7 +164,7 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
 
           {/* Main Headline Title: Bold modern typography matching reference */}
           {activeSlide.title && (
-            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-tight text-white leading-[1.1] sm:leading-[1.08] mb-4 sm:mb-8 drop-shadow-sm transition-all animate-fade-in">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1] sm:leading-[1.08] mb-4 sm:mb-8 drop-shadow-sm transition-all animate-fade-in">
               {activeSlide.title}
             </h1>
           )}
