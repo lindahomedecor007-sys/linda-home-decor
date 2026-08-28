@@ -131,11 +131,8 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
           );
         })}
 
-        {/* Top Dark Shade for Transparent Navbar Readability */}
-        <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-gradient-to-b from-black/75 via-black/35 to-transparent z-[15] pointer-events-none" />
-
-        {/* Soft Vignette & Readability Gradient Overlay */}
-        <div className="absolute inset-0 z-[15] bg-gradient-to-t from-black/80 via-black/35 to-black/30 md:from-black/75 md:via-black/25 md:to-black/20 pointer-events-none" />
+        {/* Subtle Light Shade Overlay for Clean Readability */}
+        <div className="absolute inset-0 z-[15] bg-gradient-to-t from-black/50 via-black/15 to-black/20 pointer-events-none" />
       </div>
 
       {/* Main Container */}
