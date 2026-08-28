@@ -16,12 +16,9 @@ const navLinks = [
   { name: "Contact", href: "/contact" },
 ];
 
-// Pages where the navbar starts transparent and turns solid on scroll (desktop only)
-const transparentNavPages = ["/"];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isHomePage = transparentNavPages.includes(pathname ?? "");
   const { categories } = useStore();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -78,11 +75,7 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-in-out bg-white shadow-md ${
-          isHomePage && !isScrolled
-            ? "md:bg-transparent md:shadow-none"
-            : "md:bg-white md:shadow-md"
-        }`}
+        className="fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-in-out bg-white shadow-md"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -115,22 +108,12 @@ export default function Navbar() {
                     >
                       <Link
                         href="/products"
-                        className={`font-medium text-base inline-flex items-center gap-1.5 transition-colors duration-200 ${
-                          isProductsDropdownOpen
-                            ? "text-[#FF9E15]"
-                            : isScrolled || !isHomePage
-                            ? "text-neutral-900 hover:text-[#FF9E15]"
-                            : "text-white hover:text-[#FF9E15]"
-                        }`}
+                        className="font-medium text-base inline-flex items-center gap-1.5 transition-colors duration-200 text-neutral-900 hover:text-[#FF9E15]"
                       >
                         <span>{link.name}</span>
                         <ChevronDown
                           className={`w-4 h-4 transition-transform duration-200 ${
-                            isProductsDropdownOpen
-                              ? "rotate-180 text-[#FF9E15]"
-                              : isScrolled || !isHomePage
-                              ? "text-neutral-900"
-                              : "text-white"
+                            isProductsDropdownOpen ? "rotate-180 text-[#FF9E15]" : "text-neutral-900"
                           }`}
                         />
                       </Link>
@@ -177,9 +160,7 @@ export default function Navbar() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`font-medium text-base transition-colors duration-200 hover:text-[#FF9E15] ${
-                      isScrolled || !isHomePage ? "text-neutral-900" : "text-white"
-                    }`}
+                    className="font-medium text-base transition-colors duration-200 hover:text-[#FF9E15] text-neutral-900"
                   >
                     {link.name}
                   </Link>
