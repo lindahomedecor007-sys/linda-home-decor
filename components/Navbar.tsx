@@ -20,6 +20,7 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const isHomePage = pathname === "/";
   const { categories } = useStore();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -77,7 +78,7 @@ export default function Navbar() {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-in-out ${
-          isScrolled
+          isScrolled || !isHomePage
             ? "bg-white shadow-md"
             : "bg-transparent shadow-none"
         }`}
@@ -116,7 +117,7 @@ export default function Navbar() {
                         className={`font-medium text-base inline-flex items-center gap-1.5 transition-colors duration-200 ${
                           isProductsDropdownOpen
                             ? "text-[#FF9E15]"
-                            : isScrolled
+                            : isScrolled || !isHomePage
                             ? "text-neutral-900 hover:text-[#FF9E15]"
                             : "text-white hover:text-[#FF9E15]"
                         }`}
@@ -126,7 +127,7 @@ export default function Navbar() {
                           className={`w-4 h-4 transition-transform duration-200 ${
                             isProductsDropdownOpen
                               ? "rotate-180 text-[#FF9E15]"
-                              : isScrolled
+                              : isScrolled || !isHomePage
                               ? "text-neutral-900"
                               : "text-white"
                           }`}
@@ -176,7 +177,7 @@ export default function Navbar() {
                     key={link.name}
                     href={link.href}
                     className={`font-medium text-base transition-colors duration-200 hover:text-[#FF9E15] ${
-                      isScrolled ? "text-neutral-900" : "text-white"
+                      isScrolled || !isHomePage ? "text-neutral-900" : "text-white"
                     }`}
                   >
                     {link.name}
@@ -201,7 +202,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
                 className={`p-2 focus:outline-none transition-colors ${
-                  isScrolled ? "text-neutral-900" : "text-white"
+                  isScrolled || !isHomePage ? "text-neutral-900" : "text-white"
                 }`}
                 aria-label="Open mobile menu"
               >
