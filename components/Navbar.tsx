@@ -20,6 +20,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { categories } = useStore();
 
+  const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
@@ -29,10 +30,13 @@ export default function Navbar() {
 
   // Track scroll position to switch between transparent and white background
   useEffect(() => {
+    setMounted(true);
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
+    // Read the actual scroll position immediately after mount
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -64,7 +68,8 @@ export default function Navbar() {
 
   // Navbar is transparent ONLY on the home page when not scrolled.
   // On all other pages or when scrolled, it is white.
-  const isTransparent = isHomePage && !isScrolled;
+  // Before mount (SSR/hydration), default to transparent on home page to avoid white flash.
+  const isTransparent = isHomePage && (!mounted || !isScrolled);
 
   const handleProductsMouseEnter = () => {
     if (dropdownTimeoutRef.current) {
