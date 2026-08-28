@@ -102,15 +102,14 @@ export default function HeroSection({ slides: propSlides, data: propData }: Hero
               {desktopImg ? (
                 <>
                   {/* Desktop Image (md and above) */}
-                  <div className="hidden md:block absolute inset-0 w-full h-full">
+                  <div className="hidden md:block absolute w-full h-full">
                     <Image
                       src={desktopImg}
                       alt={slide.title || "Hero Banner Desktop"}
                       fill
                       priority={index === 0}
-                      quality={90}
                       sizes="100vw"
-                      className="object-cover object-center scale-100 transition-transform duration-700"
+                      className="object-cover"
                     />
                   </div>
                   {/* Mobile Image (below md) */}

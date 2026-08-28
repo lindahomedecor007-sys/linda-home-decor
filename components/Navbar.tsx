@@ -25,6 +25,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -39,6 +40,15 @@ export default function Navbar() {
       document.body.style.overflow = "";
     };
   }, [isMobileMenuOpen]);
+
+  // Track scroll position for navbar background
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Early return for admin pages (after all hooks are called)
   if (pathname?.startsWith("/admin")) {
@@ -65,7 +75,13 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-40 w-full bg-white shadow-xs">
+      <header
+        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-in-out ${
+          isScrolled
+            ? "bg-white shadow-md"
+            : "bg-transparent shadow-none"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Brand Logo */}
@@ -100,7 +116,9 @@ export default function Navbar() {
                         className={`font-medium text-base inline-flex items-center gap-1.5 transition-colors duration-200 ${
                           isProductsDropdownOpen
                             ? "text-[#FF9E15]"
-                            : "text-neutral-900 hover:text-[#FF9E15]"
+                            : isScrolled
+                            ? "text-neutral-900 hover:text-[#FF9E15]"
+                            : "text-white hover:text-[#FF9E15]"
                         }`}
                       >
                         <span>{link.name}</span>
@@ -108,7 +126,9 @@ export default function Navbar() {
                           className={`w-4 h-4 transition-transform duration-200 ${
                             isProductsDropdownOpen
                               ? "rotate-180 text-[#FF9E15]"
-                              : "text-neutral-900"
+                              : isScrolled
+                              ? "text-neutral-900"
+                              : "text-white"
                           }`}
                         />
                       </Link>
@@ -155,7 +175,9 @@ export default function Navbar() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className="font-medium text-base text-neutral-900 hover:text-[#FF9E15] transition-colors duration-200"
+                    className={`font-medium text-base transition-colors duration-200 hover:text-[#FF9E15] ${
+                      isScrolled ? "text-neutral-900" : "text-white"
+                    }`}
                   >
                     {link.name}
                   </Link>
@@ -178,7 +200,9 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 text-neutral-900 focus:outline-none transition-colors"
+                className={`p-2 focus:outline-none transition-colors ${
+                  isScrolled ? "text-neutral-900" : "text-white"
+                }`}
                 aria-label="Open mobile menu"
               >
                 <Menu className="w-6 h-6" />
