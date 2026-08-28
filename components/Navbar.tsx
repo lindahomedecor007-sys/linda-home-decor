@@ -103,12 +103,12 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-40 w-full transition-transform duration-300 ease-in-out md:translate-y-0 ${
+        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-in-out md:translate-y-0 ${
           isMobileNavVisible || isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"
         } ${
           isSolidNav
             ? "bg-white shadow-md"
-            : "bg-white shadow-xs md:bg-transparent md:shadow-none"
+            : "bg-transparent shadow-none"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -217,7 +217,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={toggleMobileMenu}
-                className={`inline-flex items-center justify-center p-2 focus:outline-none transition-all duration-300 ease-in-out text-black md:${
+                className={`inline-flex items-center justify-center p-2 focus:outline-none transition-all duration-300 ease-in-out ${
                   isSolidNav ? "text-black" : "text-white"
                 } ${isMobileMenuOpen ? "rotate-90" : "rotate-0"}`}
                 aria-expanded={isMobileMenuOpen}
