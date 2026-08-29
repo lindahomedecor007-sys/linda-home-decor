@@ -72,26 +72,16 @@ export default function AdminLoginPage() {
         <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6 sm:p-8">
           {/* Logo & Heading */}
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center">
               <Image
-                src="/logo/logo.png"
+                src="/logo/logo-with-name.png"
                 alt="Linda Home Decor"
                 width={130}
                 height={42}
                 priority
-                className="h-10 w-auto object-contain"
+                className="h-20 w-auto object-contain"
               />
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-[#FF9E15] text-xs font-semibold uppercase tracking-wider mb-2">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Admin Portal
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-              Welcome back
-            </h1>
-            <p className="text-sm text-neutral-500 mt-1">
-              Sign in to manage your website content & enquiries
-            </p>
           </div>
 
           {/* Error Alert */}
