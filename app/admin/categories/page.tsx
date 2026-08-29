@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useStore, CategoryItem, CatalogItem } from "@/context/StoreContext";
+import { supabase } from "@/lib/supabase/client";
 import {
   Loader2,
   Upload,
@@ -101,10 +102,18 @@ export default function AdminCategoriesPage() {
     setIsModalOpen(true);
   };
 
-  // Helper to delete from Cloudinary
+  // Helper to delete from Cloudinary and Supabase Storage
   const deleteFromCloudinary = async (url?: string, resource_type: "image" | "raw" = "image") => {
     if (!url) return;
     try {
+      if (url.includes("supabase.co") && url.includes("/catalogs/")) {
+        const match = url.match(/\/catalogs\/(.+)$/);
+        if (match && match[1]) {
+          const filePath = decodeURIComponent(match[1].split("?")[0]);
+          await supabase.storage.from("catalogs").remove([filePath]);
+        }
+      }
+
       await fetch("/api/upload", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -113,6 +122,86 @@ export default function AdminCategoriesPage() {
     } catch (err) {
       console.error("Failed to delete file from storage:", err);
     }
+  };
+
+  // Helper to upload PDF directly to Supabase Storage
+  // Bypasses Vercel's 4.5MB Serverless Function payload limit (HTTP 413 Payload Too Large error)
+  const uploadPdfFile = async (file: File): Promise<{ url: string; fileSizeStr: string }> => {
+    const isPdf =
+      file.name.toLowerCase().endsWith(".pdf") ||
+      file.type.toLowerCase().includes("pdf") ||
+      file.type === "application/octet-stream";
+
+    if (!isPdf) {
+      throw new Error("Please select a valid PDF file (.pdf)");
+    }
+
+    const sizeInMB = file.size / (1024 * 1024);
+    if (sizeInMB > 50) {
+      throw new Error(
+        `The selected PDF is ${sizeInMB.toFixed(1)}MB. Maximum recommended size is 50MB. Please compress your PDF and try again.`
+      );
+    }
+
+    const fileSizeStr = `${sizeInMB.toFixed(1)} MB`;
+    const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const storagePath = `${cleanName}_${Date.now()}.pdf`;
+
+    // 1. Direct upload from browser to Supabase Storage ('catalogs' bucket)
+    let uploadRes = await supabase.storage
+      .from("catalogs")
+      .upload(storagePath, file, {
+        contentType: "application/pdf",
+        upsert: true,
+      });
+
+    // If bucket does not exist, try creating it and retry
+    if (uploadRes.error && uploadRes.error.message.toLowerCase().includes("bucket not found")) {
+      try {
+        await supabase.storage.createBucket("catalogs", { public: true });
+        uploadRes = await supabase.storage
+          .from("catalogs")
+          .upload(storagePath, file, {
+            contentType: "application/pdf",
+            upsert: true,
+          });
+      } catch (e) {
+        console.warn("Could not auto-create bucket:", e);
+      }
+    }
+
+    if (uploadRes.error) {
+      // Fallback to server route only if file is small enough (< 4MB) to pass through Vercel
+      if (file.size < 4 * 1024 * 1024) {
+        try {
+          const data = new FormData();
+          data.append("file", file);
+          data.append("folder", "linda-home-decor/catalogs");
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            body: data,
+          });
+          const json = await res.json();
+          if (res.ok && json.url) {
+            return { url: json.url, fileSizeStr };
+          }
+        } catch {
+          // fallback failed, throw original error
+        }
+      }
+      throw new Error(
+        `Supabase Storage error: ${uploadRes.error.message}. Please ensure the 'catalogs' public bucket is created in your Supabase project.`
+      );
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("catalogs")
+      .getPublicUrl(uploadRes.data?.path || storagePath);
+
+    return {
+      url: publicUrlData.publicUrl,
+      fileSizeStr,
+    };
   };
 
   // Handle Name Input & auto-slug
@@ -171,49 +260,21 @@ export default function AdminCategoriesPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isPdf =
-      file.name.toLowerCase().endsWith(".pdf") ||
-      file.type.toLowerCase().includes("pdf") ||
-      file.type === "application/octet-stream";
-
-    if (!isPdf) {
-      setStatusMessage({ type: "error", text: "Please select a valid PDF file (.pdf)" });
-      if (newCatalogFileInputRef.current) newCatalogFileInputRef.current.value = "";
-      return;
-    }
-
-    const sizeInMB = file.size / (1024 * 1024);
-    if (sizeInMB > 50) {
-      setStatusMessage({
-        type: "error",
-        text: `The selected PDF is ${sizeInMB.toFixed(1)}MB. Maximum recommended size is 50MB. Please compress your PDF and try again.`,
-      });
-      if (newCatalogFileInputRef.current) newCatalogFileInputRef.current.value = "";
-      return;
-    }
-
     setUploadingNewCatalog(true);
     setStatusMessage(null);
 
     try {
-      const data = new FormData();
-      data.append("file", file);
-      data.append("folder", "linda-home-decor/catalogs");
+      const { url, fileSizeStr } = await uploadPdfFile(file);
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: data,
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Failed to upload PDF");
-
-      const defaultName = file.name.replace(/\.[^/.]+$/, "") || (formData.name ? `${formData.name} Volume ${formData.catalogs.length + 1}` : `Catalogue ${formData.catalogs.length + 1}`);
-      const fileSizeStr = `${sizeInMB.toFixed(1)} MB`;
+      const defaultName =
+        file.name.replace(/\.[^/.]+$/, "") ||
+        (formData.name
+          ? `${formData.name} Volume ${formData.catalogs.length + 1}`
+          : `Catalogue ${formData.catalogs.length + 1}`);
 
       const newCatalogItem: CatalogItem = {
         name: defaultName,
-        url: json.url,
+        url,
         file_size: fileSizeStr,
         pages: "",
       };
@@ -239,44 +300,11 @@ export default function AdminCategoriesPage() {
     const index = currentCatalogIndexToReplace.current;
     if (!file || index === null || index === undefined) return;
 
-    const isPdf =
-      file.name.toLowerCase().endsWith(".pdf") ||
-      file.type.toLowerCase().includes("pdf") ||
-      file.type === "application/octet-stream";
-
-    if (!isPdf) {
-      setStatusMessage({ type: "error", text: "Please select a valid PDF file (.pdf)" });
-      if (editCatalogFileInputRef.current) editCatalogFileInputRef.current.value = "";
-      return;
-    }
-
-    const sizeInMB = file.size / (1024 * 1024);
-    if (sizeInMB > 50) {
-      setStatusMessage({
-        type: "error",
-        text: `The selected PDF is ${sizeInMB.toFixed(1)}MB. Maximum recommended size is 50MB. Please compress your PDF and try again.`,
-      });
-      if (editCatalogFileInputRef.current) editCatalogFileInputRef.current.value = "";
-      return;
-    }
-
     setUploadingCatalogIndex(index);
     setStatusMessage(null);
 
     try {
-      const data = new FormData();
-      data.append("file", file);
-      data.append("folder", "linda-home-decor/catalogs");
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: data,
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Failed to upload PDF");
-
-      const fileSizeStr = `${sizeInMB.toFixed(1)} MB`;
+      const { url, fileSizeStr } = await uploadPdfFile(file);
 
       const oldUrl = formData.catalogs[index]?.url;
       if (oldUrl) {
@@ -288,7 +316,7 @@ export default function AdminCategoriesPage() {
         if (updated[index]) {
           updated[index] = {
             ...updated[index],
-            url: json.url,
+            url,
             file_size: fileSizeStr,
           };
         }
