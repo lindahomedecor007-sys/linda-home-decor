@@ -315,23 +315,71 @@ export default function AdminDashboardPage() {
                             </div>
 
                             {item.note && (() => {
-                              const productMatch = item.note.match(/\[Product:\s*([^\]]+)\]/i);
-                              const productName = productMatch ? productMatch[1].trim() : null;
-                              const cleanNote = item.note.replace(/\[Product:\s*[^\]]+\]\n?/i, "").trim();
+                              const productMatch = item.note.match(/\[(?:WhatsApp Direct Enquiry -\s*)?Product:\s*([^\]]+)\]/i);
+                              if (!productMatch) {
+                                return (
+                                  <p className="text-xs text-neutral-600 line-clamp-1 mt-0.5">
+                                    {item.note}
+                                  </p>
+                                );
+                              }
+
+                              const rawMeta = productMatch[1];
+                              const parts = rawMeta.split("|").map((p) => p.trim());
+                              const rawName = parts[0] || "";
+                              let imageUrl: string | undefined;
+                              let category: string | undefined;
+
+                              for (let i = 1; i < parts.length; i++) {
+                                const part = parts[i];
+                                if (part.toLowerCase().startsWith("image:")) imageUrl = part.replace(/^image:\s*/i, "").trim();
+                                if (part.toLowerCase().startsWith("category:")) category = part.replace(/^category:\s*/i, "").trim();
+                              }
+
+                              const cleanNote = item.note
+                                .replace(/\[(?:WhatsApp Direct Enquiry -\s*)?Product:\s*[^\]]+\]\n?/i, "")
+                                .replace(/^Customer initiated WhatsApp enquiry.*$/i, "")
+                                .trim();
+
+                              const matched = products.find((p) => {
+                                const pName = (p.name || "").trim().toLowerCase();
+                                const query = rawName.trim().toLowerCase();
+                                return pName === query || pName.includes(query) || query.includes(pName) || p.id === rawName.trim();
+                              });
+
+                              const finalImg = matched?.image_url || matched?.sub_images?.[0] || imageUrl;
+                              const finalName = matched?.name || rawName;
+                              const finalCat = matched?.category_name || matched?.category || category;
 
                               return (
-                                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                                  {productName && (
-                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-xs border border-amber-200/80">
-                                      <Tag className="w-2.5 h-2.5 text-[#FF9E15]" />
-                                      <span className="truncate max-w-[220px]">{productName}</span>
-                                    </span>
+                                <div className="mt-1 flex items-center gap-2.5 p-2 bg-amber-50/50 rounded-sm border border-amber-200/70">
+                                  {finalImg ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      src={finalImg}
+                                      alt={finalName}
+                                      className="w-8 h-8 rounded-xs object-cover border border-amber-200 shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="w-8 h-8 rounded-xs bg-amber-100/70 text-[#FF9E15] flex items-center justify-center shrink-0">
+                                      <Tag className="w-3.5 h-3.5" />
+                                    </div>
                                   )}
-                                  {cleanNote && (
-                                    <span className="text-xs text-neutral-700 font-normal line-clamp-1 bg-neutral-50 px-2 py-0.5 rounded-xs border border-neutral-200/70">
-                                      {cleanNote}
-                                    </span>
-                                  )}
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="text-xs font-bold text-neutral-900 truncate max-w-[200px] sm:max-w-[280px]">
+                                        {finalName}
+                                      </span>
+                                      {finalCat && (
+                                        <span className="text-[9px] font-semibold text-neutral-500 bg-white border border-neutral-200 px-1.5 py-0.2 rounded-xs">
+                                          {finalCat}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {cleanNote && (
+                                      <p className="text-[11px] text-neutral-600 line-clamp-1 mt-0.5">{cleanNote}</p>
+                                    )}
+                                  </div>
                                 </div>
                               );
                             })()}
