@@ -61,9 +61,10 @@ function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
 
     setSubmitting(true);
     try {
+      const productMeta = `[Product: ${product.name}${product.category_name ? ` | Category: ${product.category_name}` : ""}${product.image_url ? ` | Image: ${product.image_url}` : ""}${product.slug ? ` | Slug: ${product.slug}` : ""}]`;
       const finalNote = formData.note.trim()
-        ? `[Product: ${product.name}]\n${formData.note.trim()}`
-        : `[Product: ${product.name}]`;
+        ? `${productMeta}\n${formData.note.trim()}`
+        : productMeta;
 
       await addEnquiry({
         name: formData.name.trim(),
@@ -212,10 +213,11 @@ function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => {
+                    const productMeta = `[WhatsApp Direct Enquiry - Product: ${product.name}${product.category_name ? ` | Category: ${product.category_name}` : ""}${product.image_url ? ` | Image: ${product.image_url}` : ""}${product.slug ? ` | Slug: ${product.slug}` : ""}]`;
                     trackWhatsAppEnquiry({
                       name: formData.name.trim() || "WhatsApp Visitor",
                       mobile_number: formData.mobile_number.trim() || "Via WhatsApp",
-                      note: `[WhatsApp Direct Enquiry - Product: ${product.name}] Customer initiated WhatsApp enquiry for ${product.name}${product.category_name ? ` (${product.category_name})` : ""}.`,
+                      note: `${productMeta} Customer initiated WhatsApp enquiry for ${product.name}${product.category_name ? ` (${product.category_name})` : ""}.`,
                     });
                   }}
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm text-xs sm:text-sm font-semibold text-white bg-[#25D366] hover:bg-[#20ba59] shadow-xs transition-all cursor-pointer"
