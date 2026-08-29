@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import {
   Loader2,
   Trash2,
@@ -16,12 +17,77 @@ import {
   User,
   Tag,
   X,
+  ImageIcon,
+  ExternalLink,
+  Layers,
+  Package,
 } from "lucide-react";
 import { EnquiryItem } from "@/lib/enquiries";
-import { useStore } from "@/context/StoreContext";
+import { useStore, ProductItem } from "@/context/StoreContext";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminHeader from "@/components/AdminHeader";
 import AdminToast, { ToastMessage } from "@/components/AdminToast";
+
+interface ParsedProductInfo {
+  name: string;
+  category?: string;
+  imageUrl?: string;
+  slug?: string;
+  matchedProduct?: ProductItem;
+  cleanNote: string;
+}
+
+function parseEnquiryProduct(note: string | undefined, products: ProductItem[]): ParsedProductInfo | null {
+  if (!note) return null;
+
+  // Match [Product: ...] or [WhatsApp Direct Enquiry - Product: ...]
+  const productMatch = note.match(/\[(?:WhatsApp Direct Enquiry -\s*)?Product:\s*([^\]]+)\]/i);
+  if (!productMatch) return null;
+
+  const rawMeta = productMatch[1];
+  // Parse key-value pairs if separated by |
+  const parts = rawMeta.split("|").map((p) => p.trim());
+  const name = parts[0] || "";
+  let category: string | undefined;
+  let imageUrl: string | undefined;
+  let slug: string | undefined;
+
+  for (let i = 1; i < parts.length; i++) {
+    const part = parts[i];
+    if (part.toLowerCase().startsWith("category:")) {
+      category = part.replace(/^category:\s*/i, "").trim();
+    } else if (part.toLowerCase().startsWith("image:")) {
+      imageUrl = part.replace(/^image:\s*/i, "").trim();
+    } else if (part.toLowerCase().startsWith("slug:")) {
+      slug = part.replace(/^slug:\s*/i, "").trim();
+    }
+  }
+
+  // Remove [Product: ...] from the note to get user's actual typed message
+  let cleanNote = note.replace(/\[(?:WhatsApp Direct Enquiry -\s*)?Product:\s*[^\]]+\]\n?/i, "").trim();
+  if (cleanNote.startsWith("Customer initiated WhatsApp enquiry")) {
+    cleanNote = "";
+  }
+
+  // Find matching product in store products list
+  const matched = products.find((p) => {
+    const pName = (p.name || "").trim().toLowerCase();
+    const query = name.trim().toLowerCase();
+    if (pName && query && (pName === query || pName.includes(query) || query.includes(pName))) return true;
+    if (slug && p.slug && p.slug.toLowerCase() === slug.toLowerCase()) return true;
+    if (p.id === name.trim()) return true;
+    return false;
+  });
+
+  return {
+    name: matched?.name || name,
+    category: matched?.category_name || matched?.category || category,
+    imageUrl: matched?.image_url || matched?.sub_images?.[0] || imageUrl,
+    slug: matched?.slug || slug,
+    matchedProduct: matched,
+    cleanNote,
+  };
+}
 
 export default function AdminEnquiriesPage() {
   const {
@@ -30,6 +96,7 @@ export default function AdminEnquiriesPage() {
     updateEnquiryStatus,
     deleteEnquiry,
     refreshEnquiries,
+    products,
   } = useStore();
 
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -322,26 +389,76 @@ export default function AdminEnquiriesPage() {
                             )}
                           </div>
 
-                          {/* Note / Message with Product Tag Detection */}
+                          {/* Note / Message with Rich Product Details */}
                           {item.note && (() => {
-                            const productMatch = item.note.match(/\[Product:\s*([^\]]+)\]/i);
-                            const productName = productMatch ? productMatch[1].trim() : null;
-                            const cleanNote = item.note.replace(/\[Product:\s*[^\]]+\]\n?/i, "").trim();
+                            const productInfo = parseEnquiryProduct(item.note, products);
+                            const cleanNote = productInfo ? productInfo.cleanNote : item.note;
 
                             return (
-                              <div className="bg-neutral-50 p-3 rounded-sm border border-neutral-200/80 text-xs text-neutral-800 space-y-2">
-                                {productName && (
-                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100/90 text-[#b45309] rounded-sm text-xs font-bold border border-amber-200">
-                                    <Tag className="w-3.5 h-3.5 text-[#FF9E15]" />
-                                    <span>Product Enquired: {productName}</span>
+                              <div className="space-y-3">
+                                {/* Rich Product Details Card */}
+                                {productInfo && (
+                                  <div className="p-3 sm:p-3.5 rounded-sm border border-amber-200/90 bg-amber-50/40 flex flex-col sm:flex-row items-start sm:items-center gap-3.5 shadow-2xs">
+                                    {/* Product Thumbnail Image */}
+                                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-sm overflow-hidden bg-neutral-100 border border-neutral-300/80 shrink-0">
+                                      {productInfo.imageUrl ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
+                                          src={productInfo.imageUrl}
+                                          alt={productInfo.name}
+                                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 gap-1 bg-neutral-100">
+                                          <ImageIcon className="w-5 h-5 text-neutral-300" />
+                                          <span className="text-[9px] font-medium">No Image</span>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Product Details */}
+                                    <div className="min-w-0 flex-1 space-y-1">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-[10px] font-bold text-[#b45309] bg-amber-100 border border-amber-200/90 px-2 py-0.5 rounded-xs uppercase tracking-wider">
+                                          Enquired Product
+                                        </span>
+                                        {productInfo.category && (
+                                          <span className="text-[10px] font-semibold text-neutral-600 bg-white border border-neutral-200 px-2 py-0.5 rounded-xs">
+                                            {productInfo.category}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      <h4 className="text-sm font-bold text-neutral-900 truncate" title={productInfo.name}>
+                                        {productInfo.name}
+                                      </h4>
+
+                                      {productInfo.matchedProduct?.description && (
+                                        <p className="text-xs text-neutral-600 line-clamp-1 leading-relaxed">
+                                          {productInfo.matchedProduct.description}
+                                        </p>
+                                      )}
+
+                                      {productInfo.matchedProduct?.specifications && productInfo.matchedProduct.specifications.length > 0 && (
+                                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                          {productInfo.matchedProduct.specifications.slice(0, 3).map((spec, idx) => (
+                                            <span key={idx} className="text-[10px] text-neutral-600 bg-white border border-neutral-200/80 px-1.5 py-0.5 rounded-xs">
+                                              {spec}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 )}
+
+                                {/* Customer Message / Requirement */}
                                 {cleanNote && (
-                                  <div>
-                                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block mb-1">
-                                      Message / Requirement:
+                                  <div className="bg-neutral-50 p-3 rounded-sm border border-neutral-200/80 text-xs text-neutral-800 space-y-1">
+                                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block">
+                                      Customer Message / Requirement:
                                     </span>
-                                    <p className="whitespace-pre-wrap leading-relaxed text-neutral-700">{cleanNote}</p>
+                                    <p className="whitespace-pre-wrap leading-relaxed text-neutral-700 font-medium">{cleanNote}</p>
                                   </div>
                                 )}
                               </div>
