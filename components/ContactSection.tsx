@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { CompanySettingsData } from "@/lib/companySettings";
+import { trackWhatsAppEnquiry } from "@/lib/enquiries";
 import {
   Loader2,
   Phone,
@@ -85,6 +86,7 @@ function ContactSectionContent({
         mobile_number: formData.mobile_number,
         email: formData.email,
         note: finalNote,
+        source: "form",
       });
 
       setSuccess(true);
@@ -222,6 +224,13 @@ function ContactSectionContent({
                       href={whatsappHref}
                       target={whatsappHref !== "#" ? "_blank" : "_self"}
                       rel="noopener noreferrer"
+                      onClick={() => {
+                        trackWhatsAppEnquiry({
+                          note: productParam
+                            ? `[WhatsApp Direct Contact - Product: ${productParam}] Customer clicked WhatsApp link on Contact section.`
+                            : "[WhatsApp Direct Contact] Customer clicked WhatsApp link on Contact section.",
+                        });
+                      }}
                       className="w-9 h-9 rounded-full bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-2xs"
                       aria-label="WhatsApp"
                       title="WhatsApp"

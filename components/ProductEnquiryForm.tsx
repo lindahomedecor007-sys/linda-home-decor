@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useStore, ProductItem } from "@/context/StoreContext";
+import { trackWhatsAppEnquiry } from "@/lib/enquiries";
 import { Loader2, Send, CheckCircle2, AlertCircle, MessageSquare } from "lucide-react";
 import { WhatsappIcon } from "@/components/SocialIcons";
 
@@ -69,6 +70,7 @@ function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
         mobile_number: formData.mobile_number.trim(),
         email: formData.email.trim(),
         note: finalNote,
+        source: "form",
       });
 
       setSuccess(true);
@@ -209,6 +211,13 @@ function ProductEnquiryFormContent({ product }: ProductEnquiryFormProps) {
                   href={whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    trackWhatsAppEnquiry({
+                      name: formData.name.trim() || "WhatsApp Visitor",
+                      mobile_number: formData.mobile_number.trim() || "Via WhatsApp",
+                      note: `[WhatsApp Direct Enquiry - Product: ${product.name}] Customer initiated WhatsApp enquiry for ${product.name}${product.category_name ? ` (${product.category_name})` : ""}.`,
+                    });
+                  }}
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm text-xs sm:text-sm font-semibold text-white bg-[#25D366] hover:bg-[#20ba59] shadow-xs transition-all cursor-pointer"
                 >
                   <WhatsappIcon className="w-4 h-4 fill-current" />
