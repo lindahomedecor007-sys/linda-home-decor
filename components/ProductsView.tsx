@@ -157,17 +157,17 @@ function ProductsViewContent({
       {/* 
         ========================================================================
         REUSABLE CATALOGUE DOWNLOAD SECTION (Between Banner and Category Filter)
-        Only shown when a specific category is selected (hidden on All Products)
         ========================================================================
       */}
-      {selectedCategory && (
-        <CatalogDownloadSection
-          categoryName={selectedCategory.name}
-          catalogUrl={activeCatalogUrl || undefined}
-          variant="bar"
-          showEnquiryFallback={true}
-        />
-      )}
+      <CatalogDownloadSection
+        categories={categories}
+        selectedCategory={selectedCategory}
+        selectedCategorySlug={currentCategoryParam}
+        categoryName={selectedCategory?.name}
+        catalogs={selectedCategory?.catalogs}
+        onCategoryChange={handleCategorySelect}
+        showEnquiryFallback={true}
+      />
 
       {/* 
         ========================================================================

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
+import { trackWhatsAppEnquiry } from "@/lib/enquiries";
 import { Phone, X, MessageCircle, PhoneCall } from "lucide-react";
 import { WhatsappIcon } from "@/components/SocialIcons";
 
@@ -73,7 +74,12 @@ export default function FloatingContact() {
           href={whatsappHref}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => setIsOpen(false)}
+          onClick={() => {
+            setIsOpen(false);
+            trackWhatsAppEnquiry({
+              note: `[WhatsApp Direct Contact] Clicked floating WhatsApp button on page: ${pathname || "/"}`,
+            });
+          }}
           title="Chat on WhatsApp"
           className="w-12 h-12 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
           aria-label="Chat with us on WhatsApp"

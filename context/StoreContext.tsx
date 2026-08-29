@@ -36,12 +36,21 @@ import {
 } from "@/lib/services";
 import { supabase } from "@/lib/supabase/client";
 
+export interface CatalogItem {
+  id?: string;
+  name: string;
+  url: string;
+  pages?: string;
+  file_size?: string;
+}
+
 export interface CategoryItem {
   id: string;
   name: string;
   slug: string;
   image_url?: string;
   catalog_url?: string;
+  catalogs?: CatalogItem[];
   display_order?: number;
   created_at?: string;
   updated_at?: string;
@@ -109,8 +118,8 @@ interface StoreContextType {
   updateEnquiryStatus: (id: string, status: "pending" | "completed") => Promise<void>;
   deleteEnquiry: (id: string) => Promise<void>;
   refreshCategories: () => Promise<CategoryItem[]>;
-  createCategory: (data: { name: string; slug?: string; image_url?: string; catalog_url?: string; display_order?: number }) => Promise<CategoryItem>;
-  updateCategory: (id: string, data: { name?: string; slug?: string; image_url?: string; catalog_url?: string; display_order?: number }) => Promise<CategoryItem>;
+  createCategory: (data: { name: string; slug?: string; image_url?: string; catalog_url?: string; catalogs?: CatalogItem[]; display_order?: number }) => Promise<CategoryItem>;
+  updateCategory: (id: string, data: { name?: string; slug?: string; image_url?: string; catalog_url?: string; catalogs?: CatalogItem[]; display_order?: number }) => Promise<CategoryItem>;
   deleteCategory: (id: string) => Promise<void>;
   refreshProducts: () => Promise<ProductItem[]>;
   createProduct: (data: {
@@ -494,16 +503,47 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return [];
       }
       if (cats && cats.length > 0) {
-        const formatted: CategoryItem[] = cats.map((c: Record<string, unknown>) => ({
-          id: String(c.id || ""),
-          name: String(c.name || c.title || c.category_name || `Category ${c.id}`),
-          slug: String(c.slug || c.name || c.id).toLowerCase().replace(/\s+/g, "-"),
-          image_url: c.image_url ? String(c.image_url) : undefined,
-          catalog_url: c.catalog_url ? String(c.catalog_url) : undefined,
-          display_order: typeof c.display_order === "number" ? c.display_order : 0,
-          created_at: c.created_at ? String(c.created_at) : undefined,
-          updated_at: c.updated_at ? String(c.updated_at) : undefined,
-        }));
+        const formatted: CategoryItem[] = cats.map((c: Record<string, unknown>) => {
+          let catalogsList: CatalogItem[] = [];
+
+          if (Array.isArray(c.catalogs)) {
+            catalogsList = c.catalogs as CatalogItem[];
+          } else if (typeof c.catalogs === "string" && c.catalogs.trim()) {
+            try {
+              catalogsList = JSON.parse(c.catalogs);
+            } catch {
+              catalogsList = [];
+            }
+          } else if (typeof c.catalog_url === "string" && c.catalog_url.trim()) {
+            const raw = c.catalog_url.trim();
+            if (raw.startsWith("[") || raw.startsWith("{")) {
+              try {
+                const parsed = JSON.parse(raw);
+                catalogsList = Array.isArray(parsed) ? parsed : [parsed];
+              } catch {
+                catalogsList = [{ name: `${String(c.name || "Category")} Catalogue`, url: raw }];
+              }
+            } else {
+              catalogsList = [{ name: `${String(c.name || "Category")} Catalogue`, url: raw }];
+            }
+          }
+
+          const primaryCatalogUrl = catalogsList.length > 0
+            ? catalogsList[0].url
+            : (typeof c.catalog_url === "string" && !c.catalog_url.startsWith("[") ? c.catalog_url : undefined);
+
+          return {
+            id: String(c.id || ""),
+            name: String(c.name || c.title || c.category_name || `Category ${c.id}`),
+            slug: String(c.slug || c.name || c.id).toLowerCase().replace(/\s+/g, "-"),
+            image_url: c.image_url ? String(c.image_url) : undefined,
+            catalog_url: primaryCatalogUrl,
+            catalogs: catalogsList,
+            display_order: typeof c.display_order === "number" ? c.display_order : 0,
+            created_at: c.created_at ? String(c.created_at) : undefined,
+            updated_at: c.updated_at ? String(c.updated_at) : undefined,
+          };
+        });
         setCategories(formatted);
         return formatted;
       }
@@ -519,13 +559,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Create Category
-  const createCategory = useCallback(async (catData: { name: string; slug?: string; image_url?: string; catalog_url?: string; display_order?: number }) => {
+  const createCategory = useCallback(async (catData: {
+    name: string;
+    slug?: string;
+    image_url?: string;
+    catalog_url?: string;
+    catalogs?: CatalogItem[];
+    display_order?: number;
+  }) => {
     const slug = (catData.slug || catData.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-    const payload = {
+    
+    // Serialize catalogs if array provided, otherwise use catalog_url
+    const catalogsList = catData.catalogs || (catData.catalog_url ? [{ name: `${catData.name.trim()} Catalogue`, url: catData.catalog_url }] : []);
+    const catalogStorageValue = catalogsList.length > 0 ? JSON.stringify(catalogsList) : (catData.catalog_url || null);
+
+    const payload: Record<string, unknown> = {
       name: catData.name.trim(),
       slug: slug || "category",
       image_url: catData.image_url || null,
-      catalog_url: catData.catalog_url || null,
+      catalog_url: catalogStorageValue,
       display_order: catData.display_order ?? 0,
     };
 
@@ -542,7 +594,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       name: data.name,
       slug: data.slug,
       image_url: data.image_url || undefined,
-      catalog_url: data.catalog_url || undefined,
+      catalog_url: catalogsList[0]?.url || undefined,
+      catalogs: catalogsList,
       display_order: data.display_order,
       created_at: data.created_at,
       updated_at: data.updated_at,
@@ -553,7 +606,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Update Category
-  const updateCategory = useCallback(async (id: string, catData: { name?: string; slug?: string; image_url?: string; catalog_url?: string; display_order?: number }) => {
+  const updateCategory = useCallback(async (
+    id: string,
+    catData: {
+      name?: string;
+      slug?: string;
+      image_url?: string;
+      catalog_url?: string;
+      catalogs?: CatalogItem[];
+      display_order?: number;
+    }
+  ) => {
     const payload: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
@@ -565,7 +628,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     if (catData.slug !== undefined) payload.slug = catData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     if (catData.image_url !== undefined) payload.image_url = catData.image_url || null;
-    if (catData.catalog_url !== undefined) payload.catalog_url = catData.catalog_url || null;
+    
+    if (catData.catalogs !== undefined) {
+      payload.catalog_url = catData.catalogs.length > 0 ? JSON.stringify(catData.catalogs) : null;
+    } else if (catData.catalog_url !== undefined) {
+      payload.catalog_url = catData.catalog_url || null;
+    }
+    
     if (catData.display_order !== undefined) payload.display_order = catData.display_order;
 
     const { data, error } = await supabase
@@ -577,12 +646,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (error) throw new Error(error.message || "Failed to update category");
 
+    let catalogsList: CatalogItem[] = catData.catalogs || [];
+    if (!catData.catalogs && data.catalog_url) {
+      const raw = String(data.catalog_url).trim();
+      if (raw.startsWith("[") || raw.startsWith("{")) {
+        try {
+          const parsed = JSON.parse(raw);
+          catalogsList = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          catalogsList = [{ name: `${data.name} Catalogue`, url: raw }];
+        }
+      } else {
+        catalogsList = [{ name: `${data.name} Catalogue`, url: raw }];
+      }
+    }
+
     const updated: CategoryItem = {
       id: data.id,
       name: data.name,
       slug: data.slug,
       image_url: data.image_url || undefined,
-      catalog_url: data.catalog_url || undefined,
+      catalog_url: catalogsList[0]?.url || (data.catalog_url && !data.catalog_url.startsWith("[") ? data.catalog_url : undefined),
+      catalogs: catalogsList,
       display_order: data.display_order,
       created_at: data.created_at,
       updated_at: data.updated_at,

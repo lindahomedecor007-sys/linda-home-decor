@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
+import { trackWhatsAppEnquiry } from "@/lib/enquiries";
 import {
   Phone,
   Mail,
@@ -263,6 +264,11 @@ export default function Footer() {
                 href={whatsappHref}
                 target={whatsappHref !== "#" ? "_blank" : "_self"}
                 rel="noopener noreferrer"
+                onClick={() => {
+                  trackWhatsAppEnquiry({
+                    note: "[WhatsApp Direct Contact] Customer clicked WhatsApp link in Footer",
+                  });
+                }}
                 className="text-neutral-300 hover:text-[#FF9E15] transition-colors duration-200"
                 aria-label="WhatsApp"
                 title="WhatsApp"

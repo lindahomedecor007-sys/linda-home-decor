@@ -16,6 +16,7 @@ export type CreateEnquiryInput = {
   mobile_number: string;
   email?: string;
   note?: string;
+  source?: "form" | "whatsapp";
 };
 
 export async function getEnquiries(): Promise<EnquiryItem[]> {
@@ -59,8 +60,35 @@ export async function createEnquiry(
     const payload = {
       name: input.name.trim(),
       mobile_number: input.mobile_number.trim(),
-      email: input.email?.trim() || null,
-      note: input.note?.trim() || null,
+      email: input.email?.trim() || undefined,
+      note: input.note?.trim() || undefined,
+      source: input.source || "form",
+    };
+
+    // Try calling the Next.js API route (which handles database save & Brevo email notification)
+    try {
+      const res = await fetch("/api/enquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) {
+          return { data: json.data, error: null };
+        }
+      }
+    } catch (apiErr) {
+      console.warn("API route /api/enquiries call failed, falling back to Supabase client:", apiErr);
+    }
+
+    // Direct Supabase fallback if API route is unreachable
+    const dbPayload = {
+      name: payload.name,
+      mobile_number: payload.mobile_number,
+      email: payload.email || null,
+      note: payload.note || null,
       status: "pending",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -68,7 +96,7 @@ export async function createEnquiry(
 
     const { data, error } = await supabase
       .from("enquiries")
-      .insert([payload])
+      .insert([dbPayload])
       .select()
       .single();
 
@@ -92,6 +120,29 @@ export async function createEnquiry(
     const errorMsg = err instanceof Error ? err.message : "Failed to submit enquiry";
     console.error("Error submitting enquiry:", err);
     return { data: null, error: new Error(errorMsg) };
+  }
+}
+
+/**
+ * Record a WhatsApp contact action in the admin panel without sending an email.
+ * This runs asynchronously in the background.
+ */
+export function trackWhatsAppEnquiry(params: {
+  name?: string;
+  mobile_number?: string;
+  note?: string;
+}): void {
+  try {
+    createEnquiry({
+      name: params.name || "WhatsApp Visitor",
+      mobile_number: params.mobile_number || "Via WhatsApp",
+      note: params.note || "[WhatsApp Direct Contact] Customer contacted via WhatsApp",
+      source: "whatsapp",
+    }).catch((err) => {
+      console.error("Failed to track WhatsApp enquiry:", err);
+    });
+  } catch (e) {
+    console.error("Error initiating WhatsApp tracking:", e);
   }
 }
 

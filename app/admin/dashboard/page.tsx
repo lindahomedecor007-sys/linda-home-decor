@@ -64,7 +64,7 @@ export default function AdminDashboardPage() {
 
   // Calculations from real live data
   const pendingEnquiries = enquiries.filter((e) => e.status === "pending");
-  const categoriesWithCatalog = categories.filter((c) => Boolean(c.catalog_url));
+  const categoriesWithCatalog = categories.filter((c) => (c.catalogs && c.catalogs.length > 0) || Boolean(c.catalog_url));
   const recentEnquiries = enquiries.slice(0, 5);
   const recentProducts = products.slice(0, 4);
 
@@ -314,11 +314,27 @@ export default function AdminDashboardPage() {
                               )}
                             </div>
 
-                            {item.note && (
-                              <p className="text-xs text-neutral-600 line-clamp-1 italic bg-neutral-50 p-1.5 rounded-xs border border-neutral-100">
-                                &ldquo;{item.note}&rdquo;
-                              </p>
-                            )}
+                            {item.note && (() => {
+                              const productMatch = item.note.match(/\[Product:\s*([^\]]+)\]/i);
+                              const productName = productMatch ? productMatch[1].trim() : null;
+                              const cleanNote = item.note.replace(/\[Product:\s*[^\]]+\]\n?/i, "").trim();
+
+                              return (
+                                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                  {productName && (
+                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-xs border border-amber-200/80">
+                                      <Tag className="w-2.5 h-2.5 text-[#FF9E15]" />
+                                      <span className="truncate max-w-[220px]">{productName}</span>
+                                    </span>
+                                  )}
+                                  {cleanNote && (
+                                    <span className="text-xs text-neutral-700 font-normal line-clamp-1 bg-neutral-50 px-2 py-0.5 rounded-xs border border-neutral-200/70">
+                                      {cleanNote}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
 
                           <div className="shrink-0 flex items-center gap-2">
@@ -447,7 +463,8 @@ export default function AdminDashboardPage() {
                       const count = products.filter(
                         (p) => p.category_id === cat.id || p.category_name?.toLowerCase() === cat.name.toLowerCase()
                       ).length;
-                      const hasPdf = Boolean(cat.catalog_url);
+                      const catalogCount = cat.catalogs?.length || (cat.catalog_url ? 1 : 0);
+                      const catalogPreviewUrl = cat.catalogs?.[0]?.url || cat.catalog_url;
 
                       return (
                         <div key={cat.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-neutral-50">
@@ -476,16 +493,16 @@ export default function AdminDashboardPage() {
                           </div>
 
                           <div className="shrink-0 flex items-center gap-1.5">
-                            {hasPdf ? (
+                            {catalogCount > 0 && catalogPreviewUrl ? (
                               <a
-                                href={cat.catalog_url}
+                                href={catalogPreviewUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-xs border border-emerald-200 hover:bg-emerald-100"
-                                title="Download PDF Catalogue"
+                                title={`${catalogCount} PDF Catalogue(s)`}
                               >
                                 <FileText className="w-2.5 h-2.5" />
-                                <span>PDF</span>
+                                <span>{catalogCount > 1 ? `${catalogCount} PDFs` : "PDF"}</span>
                               </a>
                             ) : (
                               <span className="text-[10px] font-medium text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-xs">
